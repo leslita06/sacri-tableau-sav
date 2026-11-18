@@ -276,7 +276,7 @@
     renderSocs(); renderHead(s); renderKpis(s); renderCanal(); renderDelai(); renderTable(); renderBoard(); renderJours(); renderMsg(); renderPieces();
   }
 
-  fetch('data/donnees.json?v=20261118c').then(function (r) { return r.json(); }).then(function (j) {
+  fetch('data/donnees.json?v=20261118d').then(function (r) { return r.json(); }).then(function (j) {
     D = j;
     var r = dt(D.ref);
     $('arrete').textContent = 'Situation au ' + JOURS[r.getDay()] + ' ' + r.getDate() + ' ' + MOIS[r.getMonth()] + ' ' + r.getFullYear() + ', ' + r.getHours() + ' h';
