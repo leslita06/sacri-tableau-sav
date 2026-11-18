@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>SACRI · Service client et après-vente</title>
+<title>SACRI, service client et après-vente</title>
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=20261118d">
+<link rel="stylesheet" href="assets/style.css?v=20261119a">
+<link rel="stylesheet" href="assets/vues.css?v=20261119a">
 </head>
 <body>
-<div class="demo"><div class="wrap"><b>Données de démonstration</b> · clients et chiffres fictifs, ils ne reflètent pas l'activité de SACRI</div></div>
+<div class="demo"><div class="wrap"><b>Données illustratives</b> : clients, numéros et chiffres fictifs, ils ne reflètent pas l'activité de SACRI</div></div>
 
 <header class="masthead">
   <div class="wrap mh">
@@ -22,73 +23,85 @@
   </div>
 </header>
 
-<nav class="filters" aria-label="Filtre par société">
+<nav class="views" aria-label="Choisir une vue">
+  <div class="wrap vw" id="views"></div>
+</nav>
+
+<div class="filters" id="filters">
   <div class="wrap fl">
     <span class="fl-l">Société</span>
     <div class="socs" id="socs"></div>
   </div>
-</nav>
+</div>
 
 <main class="wrap">
-  <section class="intro">
-    <h1 id="titre">Le service client du groupe</h1>
-    <p id="metier" class="metier"></p>
-    <p id="phrase" class="lede"></p>
-  </section>
 
-  <section class="kpis" id="kpis" aria-label="Chiffres clés"></section>
-
-  <section class="block" id="b-demandes">
-    <div class="bh"><span class="num">01</span><h2>Les demandes des clients</h2><p class="bh-s">WhatsApp, e-mail, téléphone et comptoir, dans un seul registre</p></div>
-    <div class="grid2">
+  <section class="view" id="v-messages" hidden>
+    <div class="intro">
+      <h1>Les messages reçus</h1>
+      <p id="m-phrase" class="lede"></p>
+    </div>
+    <section class="kpis k4" id="m-kpis" aria-label="Chiffres clés des messages"></section>
+    <div class="grid2 sp">
       <div class="card">
-        <p class="cap">Demandes reçues, par canal</p>
-        <p class="sub">Depuis le lundi 16/11, selon la réponse apportée</p>
-        <div class="ch"><canvas id="c-canal" aria-label="Demandes par canal"></canvas></div>
+        <p class="cap">Messages reçus, par canal</p>
+        <p class="sub">Depuis le lundi 16/11, selon leur statut</p>
+        <div class="ch"><canvas id="c-canal" aria-label="Messages par canal"></canvas></div>
       </div>
       <div class="card">
         <p class="cap">Délai de première réponse, par canal</p>
-        <p class="sub">Moyenne des demandes répondues, en heures, face au délai visé</p>
+        <p class="sub">Part des messages traités dans le délai visé, et délai moyen</p>
         <div class="ch"><canvas id="c-delai" aria-label="Délai de réponse par canal"></canvas></div>
       </div>
     </div>
     <div class="card tcard">
       <div class="thead">
-        <p class="cap">Registre des demandes <span class="cnt" id="d-cnt"></span></p>
+        <p class="cap">Chaque message, son sujet et son statut <span class="cnt" id="d-cnt"></span></p>
         <div class="tf">
           <select id="f-canal" aria-label="Canal"></select>
           <select id="f-statut" aria-label="Statut"></select>
-          <input id="f-q" type="search" placeholder="Client, objet, demande…" aria-label="Rechercher">
+          <input id="f-q" type="search" placeholder="Client, sujet, message" aria-label="Rechercher">
         </div>
       </div>
       <div class="tscroll"><table class="tbl" id="t-dem">
-        <thead><tr><th>N°</th><th>Reçue le</th><th>Canal</th><th>Client</th><th>Objet et demande</th><th class="r">Délai</th><th>Statut</th><th>Transmis à</th></tr></thead>
+        <thead><tr><th>N°</th><th>Reçu le</th><th>Canal</th><th>Client</th><th>Sujet</th><th class="r">Délai de réponse</th><th>Statut</th><th>Suivi par</th></tr></thead>
         <tbody></tbody>
       </table></div>
     </div>
   </section>
 
-  <section class="block" id="b-atelier">
-    <div class="bh"><span class="num">02</span><h2>Les machines en atelier</h2><p class="bh-s">Chaque bon de réception, de l'arrivée à la remise au client</p></div>
-    <div class="flow" id="flow"></div>
-    <div class="board-wrap"><div class="board" id="board"></div></div>
-    <div class="grid2 g-at">
-      <div class="card">
-        <p class="cap">Jours en atelier, machines non remises</p>
-        <p class="sub">Trait noir : délai visé pour ce type de matériel</p>
-        <p class="lg"><i style="background:#C0362C"></i>En retard <i style="background:#D99A3E"></i>Prête, à remettre <i style="background:#E95B0F"></i>En cours</p>
-        <div class="ch ch-tall" id="ch-jours"><canvas id="c-jours" aria-label="Jours en atelier"></canvas></div>
+  <section class="view" id="v-atelier" hidden>
+    <div class="intro">
+      <h1>Les machines en atelier</h1>
+      <p id="a-phrase" class="lede"></p>
+    </div>
+    <ol class="etapes" id="etapes" aria-label="Étapes de réparation"></ol>
+    <div class="at-grid">
+      <div class="card tcard at-list">
+        <div class="thead">
+          <p class="cap">Machines suivies <span class="cnt" id="a-cnt"></span></p>
+          <div class="tf"><select id="f-etape" aria-label="Étape"></select></div>
+        </div>
+        <div id="a-rows"></div>
       </div>
-      <div class="card" id="msg-card">
-        <p class="cap">Message prêt pour le client</p>
-        <p class="sub">Choisissez une machine dans les colonnes : le message de suivi s'écrit à partir de son bon</p>
-        <div id="msg"></div>
-      </div>
+      <aside class="card at-det" id="a-det"></aside>
     </div>
   </section>
 
-  <section class="block" id="b-pieces">
-    <div class="bh"><span class="num">03</span><h2>Identifier une pièce sur photo</h2><p class="bh-s">Le client envoie une photo, le service client trouve la bonne pièce</p></div>
+  <section class="view" id="v-envoi" hidden>
+    <div class="intro">
+      <h1>Écrire aux clients sur WhatsApp</h1>
+      <p class="lede">Plus besoin d'ouvrir WhatsApp client par client. Les messages de suivi <b>partent tout seuls</b> quand une machine change d'étape ; pour une relance ou une promotion, la <b>campagne</b> prépare en une fois le message de chaque client choisi, et l'envoie en un clic.</p>
+    </div>
+    <div class="modes" id="modes" role="tablist"></div>
+    <div id="envoi"></div>
+  </section>
+
+  <section class="view" id="v-piece" hidden>
+    <div class="intro">
+      <h1>Identifier une pièce sur photo</h1>
+      <p class="lede">Le client envoie une photo sur WhatsApp ; le service client trouve la bonne pièce en quatre étapes, sans erreur de référence.</p>
+    </div>
     <ol class="steps" id="steps"></ol>
     <p class="cap cap-out" id="cap-cases">Huit demandes types et la réponse attendue</p>
     <div class="cases" id="cases"></div>
@@ -98,11 +111,12 @@
 <footer class="foot">
   <div class="wrap">
     <img src="assets/logo-sacri.png" alt="SACRI" class="flogo" width="229" height="114">
-    <p>Chiffres calculés à partir du classeur « Service client et après-vente », situation figée au jeudi 19 novembre 2026, 11 h. Données de démonstration.</p>
+    <p>Chiffres calculés à partir du classeur « Service client et après-vente », situation figée au jeudi 19 novembre 2026, 11 h. Données illustratives : clients et numéros fictifs, aucun message n'est réellement envoyé depuis cette page. Photos produits : sacri-ci.com.</p>
   </div>
 </footer>
 
 <script src="assets/chart.umd.min.js?v=441"></script>
-<script src="assets/app.js?v=20261118d"></script>
+<script src="assets/envoi.js?v=20261119a"></script>
+<script src="assets/app.js?v=20261119a"></script>
 </body>
 </html>
