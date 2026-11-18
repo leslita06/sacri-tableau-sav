@@ -85,7 +85,7 @@
   function renderKpis(s) {
     var h = '';
     h += kpi('inbox', 'Demandes du jour', n0(s.jour), '', '<b>' + n0(s.att) + '</b> en attente de réponse · ' + n0(s.total) + ' depuis lundi');
-    h += kpi('clock', 'Délai moyen de réponse', s.moy == null ? '–' : n1(s.moy), s.moy == null ? '' : 'h', s.pctok == null ? 'aucune demande répondue' : '<b>' + s.pctok + ' %</b> dans le délai visé');
+    h += kpi('clock', 'Délai moyen de réponse', s.moy == null ? '–' : s.moy < 1 ? n0(Math.round(s.moy * 60)) : n1(s.moy), s.moy == null ? '' : s.moy < 1 ? 'min' : 'h', s.pctok == null ? 'aucune demande répondue' : '<b>' + s.pctok + ' %</b> dans le délai visé');
     h += kpi('wrench', 'Machines en atelier', s.natl ? n0(s.enat) : '–', '', s.natl ? '<b>' + n0(s.prete) + '</b> prêtes à remettre · ' + pl(s.relance, 'devis', 'devis') + ' à relancer' : 'pas d\'atelier dans le suivi');
     h += kpi('alert', 'Réparations en retard', s.natl ? n0(s.retard) : '–', '', 'au-delà du délai visé par matériel', s.retard > 0);
     h += kpi('star', 'Satisfaction', s.sat == null ? '–' : n1(s.sat), s.sat == null ? '' : '/ 5', s.nnotes ? pl(s.nnotes, 'note reçue', 'notes reçues') + ' à la remise' : 'aucune note reçue');
@@ -255,6 +255,7 @@
     }).join('');
     function socOf(e) { return /PST-CI/.test(e.ref + e.reponse) ? 'PST-CI' : /Trans-Roulements/.test(e.ref + e.reponse) ? 'Trans-Roulements' : /STIHL/.test(e.machine + e.ref) ? 'SACRI' : 'SACRI'; }
     var ex = D.exemples.filter(function (e) { return soc === 'Groupe' || socOf(e) === soc; });
+    $('cap-cases').textContent = ex.length === D.exemples.length ? 'Huit demandes types et la réponse attendue' : (ex.length ? ex.length + (ex.length > 1 ? ' demandes types' : ' demande type') + ' pour ' + soc + ' et la réponse attendue' : 'Demandes types');
     $('cases').innerHTML = ex.length ? ex.map(function (e) {
       return '<div class="case"><p class="ph">' + svg(/Message|Référence lue/.test(e.envoi) ? 'msg' : 'camera') + esc(e.envoi) + '</p><p class="m">' + esc(e.machine) + '</p>' +
         '<p class="pc">' + esc(e.piece) + '</p><p class="rf">' + esc(e.ref) + '</p><p class="rp">' + esc(e.reponse) + '</p><span class="tag">' + socOf(e) + '</span></div>';
@@ -275,7 +276,7 @@
     renderSocs(); renderHead(s); renderKpis(s); renderCanal(); renderDelai(); renderTable(); renderBoard(); renderJours(); renderMsg(); renderPieces();
   }
 
-  fetch('data/donnees.json?v=20261118b').then(function (r) { return r.json(); }).then(function (j) {
+  fetch('data/donnees.json?v=20261118c').then(function (r) { return r.json(); }).then(function (j) {
     D = j;
     var r = dt(D.ref);
     $('arrete').textContent = 'Situation au ' + JOURS[r.getDay()] + ' ' + r.getDate() + ' ' + MOIS[r.getMonth()] + ' ' + r.getFullYear() + ', ' + r.getHours() + ' h';
