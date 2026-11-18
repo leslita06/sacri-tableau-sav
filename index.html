@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>SACRI · Service client et après-vente</title>
+<link rel="icon" href="data:,">
+<link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="assets/style.css?v=20261118b">
+</head>
+<body>
+<div class="demo"><div class="wrap"><b>Données de démonstration</b> · clients et chiffres fictifs, ils ne reflètent pas l'activité de SACRI</div></div>
+
+<header class="masthead">
+  <div class="wrap mh">
+    <img src="assets/logo-sacri.png" alt="SACRI" class="logo" width="229" height="114">
+    <div class="mh-txt">
+      <p class="eyebrow">Service client et après-vente</p>
+      <p class="arrete" id="arrete"></p>
+    </div>
+  </div>
+</header>
+
+<nav class="filters" aria-label="Filtre par société">
+  <div class="wrap fl">
+    <span class="fl-l">Société</span>
+    <div class="socs" id="socs"></div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <section class="intro">
+    <h1 id="titre">Le service client du groupe</h1>
+    <p id="metier" class="metier"></p>
+    <p id="phrase" class="lede"></p>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Chiffres clés"></section>
+
+  <section class="block" id="b-demandes">
+    <div class="bh"><span class="num">01</span><h2>Les demandes des clients</h2><p class="bh-s">WhatsApp, e-mail, téléphone et comptoir, dans un seul registre</p></div>
+    <div class="grid2">
+      <div class="card">
+        <p class="cap">Demandes reçues, par canal</p>
+        <p class="sub">Depuis le lundi 16/11, selon la réponse apportée</p>
+        <div class="ch"><canvas id="c-canal" aria-label="Demandes par canal"></canvas></div>
+      </div>
+      <div class="card">
+        <p class="cap">Délai de première réponse, par canal</p>
+        <p class="sub">Moyenne des demandes répondues, en heures, face au délai visé</p>
+        <div class="ch"><canvas id="c-delai" aria-label="Délai de réponse par canal"></canvas></div>
+      </div>
+    </div>
+    <div class="card tcard">
+      <div class="thead">
+        <p class="cap">Registre des demandes <span class="cnt" id="d-cnt"></span></p>
+        <div class="tf">
+          <select id="f-canal" aria-label="Canal"></select>
+          <select id="f-statut" aria-label="Statut"></select>
+          <input id="f-q" type="search" placeholder="Client, objet, demande…" aria-label="Rechercher">
+        </div>
+      </div>
+      <div class="tscroll"><table class="tbl" id="t-dem">
+        <thead><tr><th>N°</th><th>Reçue le</th><th>Canal</th><th>Client</th><th>Objet et demande</th><th class="r">Délai</th><th>Statut</th><th>Transmis à</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="block" id="b-atelier">
+    <div class="bh"><span class="num">02</span><h2>Les machines en atelier</h2><p class="bh-s">Chaque bon de réception, de l'arrivée à la remise au client</p></div>
+    <div class="flow" id="flow"></div>
+    <div class="board-wrap"><div class="board" id="board"></div></div>
+    <div class="grid2 g-at">
+      <div class="card">
+        <p class="cap">Jours en atelier, machines non remises</p>
+        <p class="sub">Trait noir : délai visé pour ce type de matériel</p>
+        <p class="lg"><i style="background:#C0362C"></i>En retard <i style="background:#D99A3E"></i>Prête, à remettre <i style="background:#E95B0F"></i>En cours</p>
+        <div class="ch ch-tall" id="ch-jours"><canvas id="c-jours" aria-label="Jours en atelier"></canvas></div>
+      </div>
+      <div class="card" id="msg-card">
+        <p class="cap">Message prêt pour le client</p>
+        <p class="sub">Choisissez une machine dans les colonnes : le message de suivi s'écrit à partir de son bon</p>
+        <div id="msg"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="b-pieces">
+    <div class="bh"><span class="num">03</span><h2>Identifier une pièce sur photo</h2><p class="bh-s">Le client envoie une photo, le service client trouve la bonne pièce</p></div>
+    <ol class="steps" id="steps"></ol>
+    <p class="cap cap-out">Huit demandes types et la réponse attendue</p>
+    <div class="cases" id="cases"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <img src="assets/logo-sacri.png" alt="SACRI" class="flogo" width="229" height="114">
+    <p>Chiffres calculés à partir du classeur « Service client et après-vente », situation figée au jeudi 19 novembre 2026, 11 h. Données de démonstration.</p>
+  </div>
+</footer>
+
+<script src="assets/chart.umd.min.js?v=441"></script>
+<script src="assets/app.js?v=20261118b"></script>
+</body>
+</html>
