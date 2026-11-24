@@ -1,4 +1,4 @@
-// SACRI · service client et après-vente : boîte de réception, atelier, envoi, pièce sur photo.
+// SACRI, service client et après-vente : boîte de réception, atelier, envoi, pièce sur photo.
 // Données de démonstration (data/donnees.json). Aucun message ne part de cette page.
 (function () {
   'use strict';
@@ -90,7 +90,7 @@
     $('sel-b').classList.toggle('on', soc !== 'Groupe');
     var it = [['Groupe', 'Toutes les sociétés', 'Vue d\'ensemble du groupe']].concat(SOCS.map(function (k) {
       var m = D.demandes.filter(function (x) { return x.soc === k; }).length, a = D.atelier.filter(function (x) { return x.soc === k && x.statut !== 'Remise'; }).length;
-      return [k, k, pl(m, 'message') + (a ? ' · ' + pl(a, 'machine') + ' à l\'atelier' : '')];
+      return [k, k, pl(m, 'message') + (a ? ', ' + pl(a, 'machine') + ' à l\'atelier' : '')];
     }));
     $('menu').innerHTML = it.map(function (x, i) {
       return (i === 1 ? '<div class="msep"></div>' : '') + '<button class="mi' + (soc === x[0] ? ' on' : '') + '" data-k="' + x[0] + '"><span><b>' + esc(x[1]) + '</b><small>' + esc(x[2]) + '</small></span>' + ico('check', 'ck') + '</button>';
@@ -192,7 +192,7 @@
     if (!x) return '';
     var s = st3(x), m = machineOf(x);
     var thread = '<div class="thread"><span class="dsep">' + jour(x.recue) + '</span>' +
-      '<div class="msg">' + avatar(x.client) + '<div><div class="bb">' + esc(x.demande) + '</div><p class="bm">' + ico(CIC[x.canal]) + esc(x.canal) + ' · ' + hh(x.recue) + '</p></div></div>' +
+      '<div class="msg">' + avatar(x.client) + '<div><div class="bb">' + esc(x.demande) + '</div><p class="bm">' + ico(CIC[x.canal]) + esc(x.canal) + ', ' + hh(x.recue) + '</p></div></div>' +
       '<div class="ev">' + '<span class="ei">' + ico('tag') + '</span><span>Classé <b>' + esc(x.objet) + '</b>, délai visé <b>' + dur(x.vise) + '</b></span></div>' +
       (x.transmis ? '<div class="ev"><span class="ei">' + ico('send') + '</span><span>Transmis à <b>' + esc(x.transmis) + '</b></span></div>' : '') +
       (x.rep ? '<div class="ev ' + (x.statut === 'Répondu dans le délai' ? 'ok' : 'late') + '"><span class="ei">' + ico(x.statut === 'Répondu dans le délai' ? 'check' : 'clock') + '</span><span>Réponse envoyée le ' + dd(x.rep) + ' à ' + hh(x.rep) + ', en <b>' + dur(x.delai) + '</b>' + (x.statut === 'Répondu dans le délai' ? ', dans le délai' : ', au-delà du délai visé') + '</span></div>'
@@ -227,7 +227,7 @@
       var moy = rp.length ? rp.reduce(function (s, x) { return s + x.delai; }, 0) / rp.length : null;
       return '<div class="chc"><p class="h"><span class="ti">' + ico(c[1]) + '</span>' + c[0] + '<span class="n">' + n0(r.length) + '</span></p>' +
         '<div class="tr"><i style="flex:' + t + ';background:#BDBDB8"></i>' + (e ? '<i style="flex:' + e + ';background:#D99A1E"></i>' : '') + (n ? '<i style="flex:' + n + ';background:var(--red)"></i>' : '') + '</div>' +
-        '<p class="s">' + (rp.length ? '<b>' + n0(Math.round(ok / rp.length * 100)) + ' %</b> dans le délai · en moyenne ' + dur(moy) + ', visé ' + dur(D.vise_canal[c[0]]) : 'en attente de réponse, délai visé ' + dur(D.vise_canal[c[0]])) + '</p></div>';
+        '<p class="s">' + (rp.length ? '<b>' + n0(Math.round(ok / rp.length * 100)) + ' %</b> dans le délai, en moyenne ' + dur(moy) + ', visé ' + dur(D.vise_canal[c[0]]) : 'en attente de réponse, délai visé ' + dur(D.vise_canal[c[0]])) + '</p></div>';
     }).join('');
   }
 
@@ -258,7 +258,7 @@
     var h = kc({ ic: 'wrench', l: 'Machines à l\'atelier', v: n0(enc.length), cls: 'key', sp: spark(sOpen, '#E95B0F'), s: delta(sOpen[7], sOpen[0], null, null, 'en une semaine') });
     h += kc({ ic: 'triangle-alert', l: 'En retard', v: ret.length ? n0(ret.length) : 'Aucune', cls: ret.length ? 'bad' : '', sp: spark(sLate, '#C8352B'), s: delta(sLate[7], sLate[0], false, null, 'en une semaine') });
     h += kc({ ic: 'circle-check-big', l: 'Réparées, à rendre', v: pr.length ? n0(pr.length) : 'Aucune', sp: spark(sReady, '#18794E'), s: pr.length ? 'clients à prévenir ou à rappeler' : 'aucune machine n\'attend son client' });
-    h += kc({ ic: 'file-text', l: 'Devis en attente d\'accord', v: dv.length ? n0(dv.length) : 'Aucun', s: dv.length ? '<span><b>' + n0(dv.filter(function (x) { return x.alerte === 'Relancer le devis'; }).length) + '</b> à relancer · ' + n0(dv.reduce(function (s, x) { return s + (x.montant || 0); }, 0)) + ' FCFA</span>' : 'tous les devis ont une réponse' });
+    h += kc({ ic: 'file-text', l: 'Devis en attente d\'accord', v: dv.length ? n0(dv.length) : 'Aucun', s: dv.length ? '<span><b>' + n0(dv.filter(function (x) { return x.alerte === 'Relancer le devis'; }).length) + '</b> à relancer, ' + n0(dv.reduce(function (s, x) { return s + (x.montant || 0); }, 0)) + ' FCFA</span>' : 'tous les devis ont une réponse' });
     $('a-kpis').innerHTML = h;
 
     $('kb').innerHTML = COLS.map(function (c) {
@@ -269,7 +269,7 @@
     var rd = a.filter(function (x) { return x.statut === 'Remise'; });
     $('r-cnt').textContent = rd.length ? n0(rd.length) : '';
     $('rendu').innerHTML = rd.length ? rd.map(function (x) {
-      return '<button class="rc" data-br="' + x.br + '"><img src="' + photo(x) + '" alt="" loading="lazy"><div><p class="cl">' + esc(x.client) + '</p><p class="md">' + esc(x.modele) + ' · rendue le ' + dd(x.remise) + ', en ' + x.jours + ' j</p></div></button>';
+      return '<button class="rc" data-br="' + x.br + '"><img src="' + photo(x) + '" alt="" loading="lazy"><div><p class="cl">' + esc(x.client) + '</p><p class="md">' + esc(x.modele) + ', rendue le ' + dd(x.remise) + ', en ' + x.jours + ' j</p></div></button>';
     }).join('') : '<p class="hint">Aucune machine rendue sur la période.</p>';
     document.querySelectorAll('#kb .mc, #rendu .rc').forEach(function (b) { b.addEventListener('click', function () { openMachine(D.atelier.filter(function (x) { return x.br === b.getAttribute('data-br'); })[0]); }); });
   }
@@ -281,14 +281,14 @@
   function card(x) {
     var late = x.alerte === 'En retard', w = Math.min(100, x.jours / Math.max(x.vise, 1) * 100);
     return '<button class="mc" data-br="' + x.br + '"><span class="ph"><img src="' + photo(x) + '" alt="' + esc(x.mat) + '" loading="lazy">' + alertPill(x) + '</span>' +
-      '<span class="bd" style="display:block"><span class="cl">' + esc(x.client) + '</span><span class="md" style="display:block">' + esc(x.modele) + ' · ' + esc(x.br.replace('BR-2026-', 'BR ')) + '</span>' +
+      '<span class="bd" style="display:block"><span class="cl">' + esc(x.client) + '</span><span class="md" style="display:block">' + esc(x.modele) + ', ' + esc(x.br.replace('BR-2026-', 'BR ')) + '</span>' +
       '<span class="ft"><span class="jt' + (late ? ' late' : '') + '">' + x.jours + ' j / ' + x.vise + '</span><span class="gb"><i class="' + (late ? 'late' : '') + '" style="width:' + w + '%"></i></span>' + avatar(x.tech) + '</span></span></button>';
   }
   function openMachine(x) {
     if (!x) return;
     var idx = PROG.findIndex(function (e) { return e[0] === x.statut; });
     var jal = [['Machine reçue', x.recue], ['Devis envoyé', x.devis_le], ['Accord du client', x.accord], ['Réparée', x.prete], ['Rendue au client', x.remise]];
-    $('dr-id').textContent = x.br + ' · ' + x.soc;
+    $('dr-id').textContent = x.br + ', ' + x.soc;
     $('dr-b').className = 'dr-b';
     $('dr-b').innerHTML = '<div class="dh"><span class="img"><img src="' + photo(x) + '" alt="' + esc(x.mat) + '"></span><div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill n">' + ETQ[x.statut] + '</span>' + alertPill(x) + '</div><h3>' + esc(x.client) + '</h3><p>' + esc(x.mat) + ', ' + esc(x.modele) + '</p></div></div>' +
       '<ol class="prog">' + PROG.map(function (e, i) { return '<li class="' + (i < idx ? 'done' : i === idx ? 'cur' : '') + '"><i></i>' + e[1] + '</li>'; }).join('') + '</ol>' +
@@ -298,7 +298,7 @@
     openDrawer();
   }
   function openConv(x) {
-    $('dr-id').textContent = x.n + ' · ' + x.objet;
+    $('dr-id').textContent = x.n + ', ' + x.objet;
     $('dr-b').className = 'dr-b conv';
     $('dr-b').innerHTML = conv(x, true); bindConv($('dr-b'));
     openDrawer();
@@ -310,7 +310,7 @@
   function renderPieces() {
     var sic = ['camera', 'scan-search', 'search', 'circle-check-big'];
     $('steps').innerHTML = D.etapes.map(function (e, i) {
-      return '<li><div class="sn"><em>' + e.n + '</em>' + ico(sic[i]) + '</div><h3>' + esc(e.quoi) + '</h3><p>' + esc(e.comment) + '</p><p class="who">Au client : <b>' + esc(e.client) + '</b></p><p class="who">Qui : <b>' + esc(e.qui) + '</b> · contrôle : ' + esc(e.ctrl) + '</p></li>';
+      return '<li><div class="sn"><em>' + e.n + '</em>' + ico(sic[i]) + '</div><h3>' + esc(e.quoi) + '</h3><p>' + esc(e.comment) + '</p><p class="who">Au client : <b>' + esc(e.client) + '</b></p><p class="who">Qui : <b>' + esc(e.qui) + '</b>, contrôle : ' + esc(e.ctrl) + '</p></li>';
     }).join('');
     function socOf(e) { return /PST-CI/.test(e.ref + e.reponse) ? 'PST-CI' : /Trans-Roulements/.test(e.ref + e.reponse) ? 'Trans-Roulements' : 'SACRI'; }
     var ex = D.exemples.filter(function (e) { return soc === 'Groupe' || socOf(e) === soc; });
