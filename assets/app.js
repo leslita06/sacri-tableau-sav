@@ -15,7 +15,7 @@
   ];
   var PROG = COLS.map(function (c) { return [c[0], c[1]]; }).concat([['Remise', 'Rendue']]);
   var ETQ = {}; PROG.forEach(function (e) { ETQ[e[0]] = e[1]; });
-  var VUES = { messages: 'Boîte de réception', atelier: 'Atelier', envoi: 'Écrire aux clients', piece: 'Pièce sur photo' };
+  var VUES = { messages: 'Boîte de réception', atelier: 'Atelier', reclamations: 'Réclamations', retours: 'Retours machines', envoi: 'Écrire aux clients', piece: 'Pièce sur photo' };
   var D, soc = 'Groupe', vue = 'messages', selM = null, fst = 'tous', fq = '', showAll = false;
 
   function $(id) { return document.getElementById(id); }
@@ -325,6 +325,7 @@
     var d = dem(), aT = d.filter(function (x) { return st3(x) !== 'Traité'; }).length, r = atl().filter(function (x) { return x.alerte === 'En retard' && x.statut !== 'Remise'; }).length;
     $('k-msg').textContent = aT ? n0(aT) : ''; $('t-msg').textContent = aT ? n0(aT) : '';
     $('k-at').textContent = r ? n0(r) : ''; $('t-at').textContent = r ? n0(r) : '';
+    if (window.SacriSuivi) { var sc = window.SacriSuivi.counts(D, soc); $('k-rc').textContent = sc.red ? n0(sc.red) : ''; $('t-rc').textContent = sc.red ? n0(sc.red) : ''; $('k-rt').textContent = sc.rec ? n0(sc.rec) : ''; }
   }
   function render() {
     badges();
@@ -332,7 +333,9 @@
     if (vue === 'atelier') renderAtelier();
     if (vue === 'envoi' && window.SacriEnvoi) window.SacriEnvoi.render(soc);
     if (vue === 'piece') renderPieces();
+    if ((vue === 'reclamations' || vue === 'retours') && window.SacriSuivi) window.SacriSuivi.render(vue, soc, D);
   }
+  window.SacriSetSoc = function (k) { soc = k; selM = null; showAll = false; renderSel(); render(); };
   function setVue(v, scroll) {
     if (!VUES[v]) v = 'messages';
     vue = v; closeDrawer();
@@ -364,5 +367,5 @@
     setVue(q.get('vue') || location.hash.slice(1) || 'messages');
   };
   if (window.SACRI_DATA) boot(window.SACRI_DATA);
-  else fetch('data/donnees.json?v=20261124f').then(function (r) { return r.json(); }).then(boot);
+  else fetch('data/donnees.json?v=20261124g').then(function (r) { return r.json(); }).then(boot);
 })();

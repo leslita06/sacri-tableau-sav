@@ -8,8 +8,9 @@
 <title>SACRI, service client et après-vente</title>
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=20261124f">
-<link rel="stylesheet" href="assets/envoi.css?v=20261124f">
+<link rel="stylesheet" href="assets/style.css?v=20261124g">
+<link rel="stylesheet" href="assets/envoi.css?v=20261124g">
+<link rel="stylesheet" href="assets/suivi.css?v=20261124g">
 </head>
 <body>
 <div class="app">
@@ -20,6 +21,8 @@
     <p class="nl">Suivi</p>
     <a class="ni" href="#messages" data-v="messages"><i data-i="inbox"></i>Boîte de réception<span class="k" id="k-msg"></span></a>
     <a class="ni" href="#atelier" data-v="atelier"><i data-i="kanban"></i>Atelier<span class="k red" id="k-at"></span></a>
+    <a class="ni" href="#reclamations" data-v="reclamations"><i data-i="flag"></i>Réclamations<span class="k red" id="k-rc"></span></a>
+    <a class="ni" href="#retours" data-v="retours"><i data-i="rotate-ccw"></i>Retours machines<span class="k" id="k-rt"></span></a>
     <p class="nl">Outils</p>
     <a class="ni" href="#envoi" data-v="envoi"><i data-i="send"></i>Écrire aux clients</a>
     <a class="ni" href="#piece" data-v="piece"><i data-i="camera"></i>Pièce sur photo</a>
@@ -74,6 +77,40 @@
     <div class="rendu" id="rendu"></div>
   </section>
 
+  <section class="view" id="v-reclamations">
+    <div class="vh"><h1>Réclamations</h1><p class="lede" id="rc-lede"></p></div>
+    <div class="kstrip" id="rc-kpis"></div>
+    <div class="sh"><h2>Réclamations ouvertes par société</h2><p class="hint">Cliquez une société pour filtrer.</p></div>
+    <div class="socs" id="rc-socs"></div>
+    <div class="sh"><h2>Suivi des réclamations</h2><button class="bt pri" id="rc-alert-all"></button></div>
+    <div class="card rcl">
+      <div class="rc-tools"><div class="seg" id="rc-seg"></div><p class="hint">Rouge : sans réponse depuis plus de 48 h.</p></div>
+      <div id="rc-rows"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-retours">
+    <div class="vh"><h1>Retours machines par numéro de série</h1><p class="lede" id="rt-lede"></p></div>
+    <div class="kstrip" id="rt-kpis"></div>
+    <div class="card srchc">
+      <p class="cap">Fiche machine</p>
+      <label class="srch big"><i data-i="search"></i><input id="rt-q" type="search" inputmode="text" placeholder="Numéro de série" aria-label="Rechercher un numéro de série"></label>
+      <div id="rt-res"></div>
+    </div>
+    <div id="rt-none" hidden></div>
+    <div id="rt-body">
+      <div class="sh"><h2>Machines revenues 2 fois ou plus <span class="cnt" id="rt-rec-n"></span></h2><p class="hint">Cliquez une machine pour voir son historique.</p></div>
+      <div class="mrs" id="rt-rec"></div>
+      <div class="sh"><h2>Délai médian entre la vente et le premier retour</h2><p class="hint">Sur les machines revenues au moins une fois.</p></div>
+      <div class="med">
+        <div class="card tbc"><p class="cap">Par société</p><div id="rt-med-s"></div></div>
+        <div class="card tbc"><p class="cap">Par modèle</p><div id="rt-med-m" class="cols"></div></div>
+      </div>
+      <div class="sh"><h2>Modèles qui reviennent le plus</h2><p class="hint">Nombre de passages à l'atelier depuis la vente.</p></div>
+      <div class="card tops" id="rt-top"></div>
+    </div>
+  </section>
+
   <section class="view" id="v-envoi">
     <div class="vh"><h1>Écrire aux clients</h1><p class="lede">Les messages de suivi <b>partent tout seuls</b> quand une machine change d'étape ; pour une relance ou une promotion, la <b>campagne</b> prépare en une fois le message de chaque client choisi. Simulation : aucun message ne part de cette page.</p></div>
     <div class="modes" id="modes" role="tablist"></div>
@@ -87,13 +124,15 @@
     <div class="cases" id="cases"></div>
   </section>
 
-  <footer class="foot">Chiffres calculés à partir du classeur « Service client et après-vente », situation figée au jeudi 19 novembre 2026, 11 h. Données de démonstration : clients et numéros fictifs, aucun message n'est réellement envoyé depuis cette page. Photos produits : sacri-ci.com.</footer>
+  <footer class="foot">Chiffres calculés à partir du classeur « Service client et après-vente », situation figée au jeudi 19 novembre 2026, 11 h. Réclamations et retours machines : données de démonstration, numéros de série fictifs. Données de démonstration : clients et numéros fictifs, aucun message n'est réellement envoyé depuis cette page. Photos produits : sacri-ci.com.</footer>
   </main>
 </div>
 
 <nav class="tabbar" aria-label="Navigation">
   <a href="#messages" data-v="messages"><i data-i="inbox"></i><span>Messages</span><em id="t-msg"></em></a>
   <a href="#atelier" data-v="atelier"><i data-i="kanban"></i><span>Atelier</span><em id="t-at"></em></a>
+  <a href="#reclamations" data-v="reclamations"><i data-i="flag"></i><span>Réclam.</span><em id="t-rc"></em></a>
+  <a href="#retours" data-v="retours"><i data-i="rotate-ccw"></i><span>Retours</span></a>
   <a href="#envoi" data-v="envoi"><i data-i="send"></i><span>Écrire</span></a>
   <a href="#piece" data-v="piece"><i data-i="camera"></i><span>Pièce</span></a>
 </nav>
@@ -105,9 +144,10 @@
   <div class="dr-b" id="dr-b"></div>
 </aside>
 
-<script src="assets/icons.js?v=20261124f"></script>
-<script src="assets/donnees.js?v=20261124f"></script>
-<script src="assets/envoi.js?v=20261124f"></script>
-<script src="assets/app.js?v=20261124f"></script>
+<script src="assets/icons.js?v=20261124g"></script>
+<script src="assets/donnees.js?v=20261124g"></script>
+<script src="assets/envoi.js?v=20261124g"></script>
+<script src="assets/suivi.js?v=20261124g"></script>
+<script src="assets/app.js?v=20261124g"></script>
 </body>
 </html>
