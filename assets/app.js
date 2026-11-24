@@ -15,7 +15,7 @@
   ];
   var PROG = COLS.map(function (c) { return [c[0], c[1]]; }).concat([['Remise', 'Rendue']]);
   var ETQ = {}; PROG.forEach(function (e) { ETQ[e[0]] = e[1]; });
-  var VUES = { messages: 'Boîte de réception', atelier: 'Atelier', reclamations: 'Réclamations', retours: 'Retours machines', envoi: 'Écrire aux clients', piece: 'Pièce sur photo' };
+  var VUES = { messages: 'Boîte de réception', atelier: 'Atelier', reclamations: 'Réclamations', retours: 'Retours machines', rapport: 'Rapport de la semaine', envoi: 'Écrire aux clients', piece: 'Pièce sur photo' };
   var D, soc = 'Groupe', vue = 'messages', selM = null, fst = 'tous', fq = '', showAll = false;
 
   function $(id) { return document.getElementById(id); }
@@ -333,7 +333,7 @@
     if (vue === 'atelier') renderAtelier();
     if (vue === 'envoi' && window.SacriEnvoi) window.SacriEnvoi.render(soc);
     if (vue === 'piece') renderPieces();
-    if ((vue === 'reclamations' || vue === 'retours') && window.SacriSuivi) window.SacriSuivi.render(vue, soc, D);
+    if ((vue === 'reclamations' || vue === 'retours' || vue === 'rapport') && window.SacriSuivi) window.SacriSuivi.render(vue, soc, D);
   }
   window.SacriSetSoc = function (k) { soc = k; selM = null; showAll = false; renderSel(); render(); };
   function setVue(v, scroll) {

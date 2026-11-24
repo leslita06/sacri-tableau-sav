@@ -5,7 +5,7 @@
   // ---------- données ----------
   // Réclamations : rep = première réponse au client, fin = réclamation close.
   var RECL = [
-    { n: 'R-2026-118', soc: 'SACRI', client: 'Exploitation forestière Doka', machine: 'STIHL MS 661', serie: '5108 4457', recue: '2026-11-14T09:20', canal: 'WhatsApp', quoi: 'Troisième retour à l\'atelier en sept mois, le client demande un échange de la machine', suivi: 'Atelier SACRI', rep: null, fin: null,
+    { n: 'R-2026-118', soc: 'SACRI', client: 'Exploitation forestière Bandama Est', machine: 'STIHL MS 661', serie: '5108 4457', recue: '2026-11-14T09:20', canal: 'WhatsApp', quoi: 'Troisième retour à l\'atelier en sept mois, le client demande un échange de la machine', suivi: 'Atelier SACRI', rep: null, fin: null,
       fait: ['Machine reçue à l\'atelier le 18/11 (bon BR-2026-0430)', 'Diagnostic pas encore commencé', 'Aucune réponse écrite au client sur la demande d\'échange'] },
     { n: 'R-2026-119', soc: 'SACRI', client: 'Scierie du Haut-Sassandra', machine: 'STIHL MS 661', serie: '5108 9921', recue: '2026-11-15T11:40', canal: 'Téléphone', quoi: 'Même panne qu\'en juin : la tronçonneuse manque de puissance', suivi: 'Comptoir SACRI', rep: null, fin: null,
       fait: ['Appel noté au comptoir le 15/11', 'Machine réparée, prête à retirer (bon BR-2026-0422)', 'Client pas rappelé sur la panne répétée'] },
@@ -33,8 +33,14 @@
       fait: ['Rappel du client le 16/11 à 10 h 15', 'Technicien passé sur site le 18/11, guides de lame réglés', 'Client satisfait, réclamation close'] },
     { n: 'R-2026-109', soc: 'DEFI', client: 'Charpentes Métalliques du Port', machine: 'Garde-corps, chantier du port', serie: null, recue: '2026-11-12T14:00', canal: 'E-mail', quoi: 'Retard de pose sur le chantier', suivi: 'Chef de chantier DEFI', rep: '2026-11-12T16:30', fin: '2026-11-14T12:00',
       fait: ['Réponse au client le 12/11 à 16 h 30', 'Équipe renforcée, pose terminée le 14/11'] },
-    { n: 'R-2026-104', soc: 'SACRI', client: 'M. Serge Kouadio', machine: 'STIHL FS 250', serie: '2209 8835', recue: '2026-11-10T09:00', canal: 'WhatsApp', quoi: 'Lanceur cassé deux fois en deux mois', suivi: 'Atelier SACRI', rep: '2026-11-10T09:40', fin: '2026-11-12T17:00',
-      fait: ['Réponse au client le 10/11 à 9 h 40', 'Lanceur remplacé, cause expliquée au client', 'Réclamation close le 12/11'] },
+    { n: 'R-2026-104', soc: 'SACRI', client: 'M. Serge Kouadio', machine: 'STIHL FS 250', serie: '2209 8835', recue: '2026-11-10T08:38', canal: 'WhatsApp', quoi: 'Lanceur cassé deux fois en deux mois', suivi: 'Atelier SACRI', rep: '2026-11-10T09:20', fin: '2026-11-12T17:00',
+      fait: ['Alerte à la direction le 10/11 à 8 h 40', 'Rappel du client par le technicien le 10/11 à 9 h 20', 'Lanceur remplacé, cause expliquée au client', 'Réclamation close le 12/11'],
+      frise: [['2026-11-10T08:38', 'Reçue', 'Message WhatsApp du client, numéro de série 2209 8835 donné', 'Client', 'c'],
+        ['2026-11-10T08:39', 'Réclamation ouverte', 'L\'assistant retrouve la machine et ses 2 retours, ouvre R-2026-104', 'Assistant', 'a'],
+        ['2026-11-10T08:40', 'Alerte à la direction', 'Directeur général et responsable de l\'atelier prévenus sur WhatsApp et par e-mail', 'Automatique', 'a'],
+        ['2026-11-10T08:55', 'Prise en charge', 'Yao K., technicien SACRI, prend le dossier', 'Atelier', 'h'],
+        ['2026-11-10T09:20', 'Rappel du client', 'Le technicien appelle le client, 42 min après son message', 'Atelier', 'h'],
+        ['2026-11-12T17:00', 'Clôturée', 'Lanceur remplacé, cause expliquée au client, client satisfait', 'Atelier', 'h']] },
     { n: 'R-2026-098', soc: 'SAFIR', client: 'Menuiserie Grâce Divine', machine: 'Lames de scie à ruban, livraison du 05/11', serie: null, recue: '2026-11-06T11:00', canal: 'Comptoir', quoi: 'Lames livrées à la mauvaise longueur', suivi: 'Magasin SAFIR', rep: '2026-11-06T12:00', fin: '2026-11-08T10:00',
       fait: ['Réponse au comptoir le 06/11', 'Lames échangées le 08/11'] }
   ];
@@ -42,17 +48,17 @@
   var MACH = [
     ['5108 3274', 'SACRI', 'STIHL MS 661', 'Tronçonneuse', 'Scierie Bandama Bois', '2025-11-04', [['2026-05-12', 'Guide-chaîne usé', 'BR-2026-0188'], ['2026-10-20', 'Ne démarre plus', 'BR-2026-0412']]],
     ['5108 9921', 'SACRI', 'STIHL MS 661', 'Tronçonneuse', 'Scierie du Haut-Sassandra', '2026-02-09', [['2026-06-22', 'Manque de puissance', 'BR-2026-0231'], ['2026-11-10', 'Manque de puissance', 'BR-2026-0422']]],
-    ['5108 4457', 'SACRI', 'STIHL MS 661', 'Tronçonneuse', 'Exploitation forestière Doka', '2026-04-14', [['2026-08-03', 'Frein de chaîne bloqué', 'BR-2026-0309'], ['2026-09-28', 'Lanceur cassé', 'BR-2026-0352'], ['2026-11-18', 'Frein de chaîne bloqué', 'BR-2026-0430']]],
+    ['5108 4457', 'SACRI', 'STIHL MS 661', 'Tronçonneuse', 'Exploitation forestière Bandama Est', '2026-04-14', [['2026-08-03', 'Frein de chaîne bloqué', 'BR-2026-0309'], ['2026-09-28', 'Lanceur cassé', 'BR-2026-0352'], ['2026-11-18', 'Frein de chaîne bloqué', 'BR-2026-0430']]],
     ['5108 6630', 'SACRI', 'STIHL MS 661', 'Tronçonneuse', 'Scierie Bandama Bois', '2026-06-15', []],
     ['4421 0917', 'SACRI', 'STIHL FS 400', 'Débroussailleuse', 'Plantations Akoupé Sud', '2025-12-01', [['2026-10-23', 'Moteur cale à chaud', 'BR-2026-0413']]],
     ['4421 7752', 'SACRI', 'STIHL FS 400', 'Débroussailleuse', 'Plantations Akoupé Sud', '2026-03-02', [['2026-07-20', 'Tête faucheuse bloquée', 'BR-2026-0274'], ['2026-11-14', 'Arbre de transmission cassé', 'BR-2026-0428']]],
-    ['3317 5562', 'SACRI', 'STIHL MS 381', 'Tronçonneuse', 'Exploitation forestière Doka', '2025-09-15', [['2026-11-02', 'Chaîne qui ne tourne pas', 'BR-2026-0416']]],
+    ['3317 5562', 'SACRI', 'STIHL MS 381', 'Tronçonneuse', 'Exploitation forestière Bandama Est', '2025-09-15', [['2026-11-02', 'Chaîne qui ne tourne pas', 'BR-2026-0416']]],
     ['3317 0846', 'SACRI', 'STIHL MS 381', 'Tronçonneuse', 'Scierie Bandama Bois', '2026-05-18', [['2026-11-12', 'Carburateur noyé', 'BR-2026-0426']]],
     ['3317 2290', 'SACRI', 'STIHL MS 381', 'Tronçonneuse', 'Hévéa Bonoua SA', '2026-03-23', []],
     ['2209 8835', 'SACRI', 'STIHL FS 250', 'Débroussailleuse', 'M. Serge Kouadio', '2026-06-08', [['2026-09-07', 'Lanceur cassé', 'BR-2026-0341'], ['2026-11-04', 'Lanceur cassé', 'BR-2026-0417']]],
     ['2209 1164', 'SACRI', 'STIHL FS 250', 'Débroussailleuse', 'M. Ibrahim Touré', '2026-08-24', [['2026-11-19', 'Fumée blanche', 'BR-2026-0431']]],
     ['2209 5517', 'SACRI', 'STIHL FS 250', 'Débroussailleuse', 'Cité Verte Paysages', '2026-05-04', []],
-    ['4002 7716', 'SACRI', 'STIHL MS 461', 'Tronçonneuse', 'Exploitation forestière Doka', '2026-01-12', [['2026-11-05', 'Embrayage qui patine', 'BR-2026-0418']]],
+    ['4002 7716', 'SACRI', 'STIHL MS 461', 'Tronçonneuse', 'Exploitation forestière Bandama Est', '2026-01-12', [['2026-11-05', 'Embrayage qui patine', 'BR-2026-0418']]],
     ['1873 4410', 'SACRI', 'STIHL MS 250', 'Tronçonneuse', 'Mme Adjoua Brou', '2026-07-06', [['2026-11-11', 'Chaîne qui saute', 'BR-2026-0424']]],
     ['4421 3308', 'SACRI', 'STIHL FS 450', 'Débroussailleuse', 'Cité Verte Paysages', '2026-04-27', [['2026-11-12', 'Ne démarre plus', 'BR-2026-0425']]],
     ['C-27 4410', 'PST-CI', 'Compresseur à piston 500 L', 'Compresseur', 'BTP Kanga & Fils', '2025-07-21', [['2026-04-13', 'Soupape de sécurité qui fuit', 'BR-2026-0142'], ['2026-10-27', 'Perte de pression', 'BR-2026-0414']]],
@@ -68,6 +74,14 @@
     ['SR-0702', 'SAFIR', 'Scie à ruban 1 100 mm', 'Scie à ruban', 'Scierie Bandama Bois', '2026-01-26', [['2026-07-27', 'Lame qui dévie', 'BR-2026-0287']]],
     ['SR-0731', 'SAFIR', 'Scie à ruban 800 mm', 'Scie à ruban', 'Menuiserie Grâce Divine', '2026-06-01', []]
   ].map(function (m) { return { serie: m[0], soc: m[1], modele: m[2], mat: m[3], client: m[4], vente: m[5], ret: m[6].map(function (r) { return { d: r[0], motif: r[1], br: r[2] }; }) }; });
+  var CAUSE = { 'R-2026-118': 'Panne qui revient après réparation', 'R-2026-119': 'Panne qui revient après réparation', 'R-2026-120': 'Erreur de livraison ou de référence',
+    'R-2026-121': 'Défaut de pose sur chantier', 'R-2026-122': 'Panne qui revient après réparation', 'R-2026-123': 'Délai dépassé ou client sans nouvelles',
+    'R-2026-124': 'Garantie ou devis contesté', 'R-2026-125': 'Panne qui revient après réparation', 'R-2026-126': 'Panne qui revient après réparation',
+    'R-2026-127': 'Garantie ou devis contesté', 'R-2026-128': 'Panne qui revient après réparation', 'R-2026-129': 'Délai dépassé ou client sans nouvelles',
+    'R-2026-112': 'Panne qui revient après réparation', 'R-2026-109': 'Délai dépassé ou client sans nouvelles', 'R-2026-104': 'Panne qui revient après réparation',
+    'R-2026-098': 'Erreur de livraison ou de référence' };
+  RECL.forEach(function (r) { r.cause = CAUSE[r.n]; });
+  var RESP = { 'SACRI': 'Responsable après-vente SACRI', 'PST-CI': 'Responsable atelier PST-CI', 'Trans-Roulements': 'Responsable magasin Trans-Roulements', 'SAFIR': 'Responsable atelier SAFIR', 'DEFI': 'Responsable chantiers DEFI' };
   window.SACRI_SUIVI = { reclamations: RECL, machines: MACH };
 
   // ---------- outils ----------
@@ -136,6 +150,8 @@
     h += kc({ ic: 'hourglass', l: 'Sans réponse, moins de 48 h', v: wait.length ? n0(wait.length) : 'Aucune', s: wait.length ? 'à traiter avant de passer en rouge' : 'rien en attente' });
     h += kc({ ic: 'timer', l: 'Première réponse, délai médian', v: mrep == null ? 'Aucune' : mrep < 24 ? n1(mrep).replace(/,0$/, '') : n1(mrep / 24).replace(/,0$/, ''), u: mrep == null ? '' : mrep < 24 ? 'h' : 'j', s: 'sur ' + pl(rep.length, 'réclamation répondue', 'réclamations répondues') });
     $('rc-kpis').innerHTML = h;
+    renderEsc(all);
+    renderFrise();
 
     // compteur et filtre par société
     var chips = [['Groupe', 'Toutes les sociétés', opAll.length, ouvertes(RECL).filter(function (r) { return etat(r) === 'rouge'; }).length]].concat(SOCS.map(function (k) {
@@ -164,7 +180,7 @@
         '<div class="c2"><p class="lb">Machine</p><p class="mv">' + esc(r.machine) + '</p>' + (r.serie ? '<button class="sl" data-s="' + esc(r.serie) + '">N° ' + esc(r.serie) + ico('arrow-up-right') + '</button>' : '<p class="mt">sans numéro de série</p>') + '</div>' +
         '<div class="c3"><p class="lb">Reçue le</p><p class="mv">' + dd(r.recue) + ' à ' + hh(r.recue) + '</p><p class="mt">' + esc(r.canal) + '</p></div>' +
         '<div class="c4"><p class="lb">Délai depuis réception</p><p class="mv dl' + (e === 'rouge' ? ' red' : '') + '">' + age(hAge) + '</p><p class="mt">' + del.replace(/^[^,]*, ?/, '') + '</p></div>' +
-        '<div class="c5">' + pill(r) + (e !== 'close' ? '<button class="bt al' + (e === 'rouge' ? ' pri' : '') + '" data-n="' + r.n + '">' + ico('siren') + 'Alerte direction</button>' : '<button class="bt al" data-n="' + r.n + '">' + ico('file-text') + 'Détail</button>') + '</div>' +
+        '<div class="c5">' + pill(r) + escLine(r) + (e !== 'close' ? '<button class="bt al' + (e === 'rouge' ? ' pri' : '') + '" data-n="' + r.n + '">' + ico('siren') + 'Alerte direction</button>' : '<button class="bt al" data-n="' + r.n + '">' + ico('file-text') + 'Détail</button>') + '</div>' +
         '</div>';
     }).join('') : '<p class="empty">Aucune réclamation dans ce filtre' + (SOC === 'Groupe' ? '' : ' pour ' + esc(SOC)) + '.</p>';
     $('rc-rows').querySelectorAll('.al').forEach(function (b) { b.addEventListener('click', function () { alerte([RECL.filter(function (r) { return r.n === b.getAttribute('data-n'); })[0]]); }); });
@@ -302,16 +318,103 @@
     box.querySelectorAll('[data-s]').forEach(function (b) { b.addEventListener('click', function () { qS = b.getAttribute('data-s'); $('rt-q').value = qS; renderSearch(); }); });
   }
 
+
+  // ---------- escalade automatique ----------
+  // Niveau 1 : alerte à la direction dès la réception. Niveau 2 : 24 h sans réponse au client. Niveau 3 : 48 h sans réponse.
+  function sansRep(r) { return hours(r.recue, r.rep || r.fin || REF); }
+  function niv(r) { var h = sansRep(r); return h > 48 ? 3 : h > 24 ? 2 : 1; }
+  function escLine(r) {
+    var n = niv(r), t = ['direction alertée', '+ responsable ' + r.soc, '+ directeur général'];
+    return '<p class="esc-l n' + n + '">' + ico('bell') + t.slice(0, n).join(' ') + '</p>';
+  }
+  function renderEsc(all) {
+    var n2 = all.filter(function (r) { return niv(r) >= 2; }).length, n3 = all.filter(function (r) { return niv(r) >= 3; }).length;
+    var R = [
+      ['Dès la réception', 'Alerte à la direction', 'Toute réclamation, quel que soit le canal, part tout de suite à la direction : client, machine, retours précédents, responsable prévenu, heure du rappel prévu.', 'Directeur général', pl(all.length, 'réclamation alertée', 'réclamations alertées') + ' depuis le 6 novembre', 'zap', ''],
+      ['24 h sans réponse au client', 'Nouvelle alerte au responsable de la société', 'Si le client n\'a reçu aucune réponse 24 h après sa réclamation, le responsable de la société concernée est relancé, avec ce qui a déjà été fait.', 'Responsable de la société', n2 ? pl(n2, 'réclamation concernée', 'réclamations concernées') : 'aucune réclamation concernée', 'hourglass', n2 ? 'w' : ''],
+      ['48 h sans réponse au client', 'Alerte au directeur général', 'Au bout de 48 h sans réponse, la réclamation passe en rouge et le directeur général reçoit une alerte nominative.', 'Directeur général', n3 ? pl(n3, 'réclamation en rouge', 'réclamations en rouge') : 'aucune réclamation en rouge', 'siren', n3 ? 'r' : '']
+    ];
+    $('rc-esc').innerHTML = R.map(function (x, i) {
+      return '<div class="es card"><div class="es-h"><span class="es-n">' + (i + 1) + '</span><span class="es-w">' + ico(x[5]) + x[0] + '</span><span class="sw" role="switch" aria-checked="true" aria-label="Règle activée"><i></i>Activée</span></div>' +
+        '<h3>' + x[1] + '</h3><p class="es-p">' + x[2] + '</p>' +
+        '<dl class="es-d"><dt>À</dt><dd>' + x[3] + '</dd><dt>Par</dt><dd><span class="ch">' + ico('message-circle') + 'WhatsApp</span><span class="ch">' + ico('mail') + 'E-mail</span></dd></dl>' +
+        '<p class="es-c ' + x[6] + '">' + x[4] + '</p></div>';
+    }).join('');
+  }
+  function renderFrise() {
+    var r = RECL.filter(function (x) { return x.frise; })[0];
+    if (!r) { $('rc-frise').innerHTML = ''; return; }
+    var t0 = r.frise[0][0];
+    function apres(d) { var h = hours(t0, d); return h === 0 ? 'à la réception' : '+ ' + age(h); }
+    $('rc-frise').innerHTML = '<div class="fr-h"><div><p class="fr-t">' + esc(r.n) + ', ' + esc(r.client) + '</p><p class="fr-s">' + esc(r.machine) + ', n° de série ' + esc(r.serie) + ' : ' + esc(r.quoi.toLowerCase()) + '</p></div>' + pill(r) + '</div>' +
+      '<ol class="fr">' + r.frise.map(function (e) {
+        return '<li class="' + e[4] + '"><span class="fr-d"></span><p class="fr-k">' + esc(e[1]) + '</p><p class="fr-m">' + dd(e[0]) + ' à ' + hh(e[0]) + '<span>' + apres(e[0]) + '</span></p><p class="fr-x">' + esc(e[2]) + '</p><p class="fr-w">' + esc(e[3]) + '</p></li>';
+      }).join('') + '</ol>' +
+      '<p class="fr-n">' + ico('check') + 'Client rappelé en ' + age(hours(r.recue, r.rep)) + ' : les alertes des 24 h et des 48 h ne sont pas parties. <button class="sl" data-s="' + esc(r.serie) + '">Voir la fiche machine ' + ico('arrow-up-right') + '</button></p>';
+    $('rc-frise').querySelectorAll('.sl').forEach(function (b) { b.addEventListener('click', function () { openFiche(b.getAttribute('data-s')); }); });
+  }
+
+  // ---------- rapport du lundi ----------
+  function renderRap() {
+    var all = RECL, op = ouvertes(all), red = op.filter(function (r) { return etat(r) === 'rouge'; });
+    var repd = all.filter(function (r) { return r.rep; }).map(function (r) { return hours(r.recue, r.rep); });
+    var moy = repd.reduce(function (a, b) { return a + b; }, 0) / repd.length, med = median(repd);
+    function hfmt(x) { return x == null ? 'aucune réponse' : x < 1 ? n0(Math.round(x * 60)) + ' min' : n1(x).replace(/,0$/, '') + ' h'; }
+    var socs = SOCS.map(function (k) {
+      var l = all.filter(function (r) { return r.soc === k; }), o = ouvertes(l), d = l.filter(function (r) { return r.rep; }).map(function (r) { return hours(r.recue, r.rep); });
+      return { k: k, n: l.length, o: o.length, r: o.filter(function (r) { return etat(r) === 'rouge'; }).length, m: d.length ? d.reduce(function (a, b) { return a + b; }, 0) / d.length : null, sr: l.filter(function (r) { return !r.rep; }).length };
+    }).sort(function (a, b) { return b.n - a.n; });
+    var risk = red.slice().sort(function (a, b) { return dt(a.recue) - dt(b.recue); }).slice(0, 3);
+    var rec = MACH.filter(function (m) { return m.ret.length >= 2; }).sort(function (a, b) { return (b.ret.length - a.ret.length) || (dt(b.ret[b.ret.length - 1].d) - dt(a.ret[a.ret.length - 1].d)); });
+    var back = MACH.filter(function (m) { return m.ret.length; }), medv = median(back.map(first));
+    var cz = {}; all.forEach(function (r) { cz[r.cause] = (cz[r.cause] || 0) + 1; });
+    var causes = Object.keys(cz).map(function (k) { return [k, cz[k]]; }).sort(function (a, b) { return b[1] - a[1]; });
+    var ms661 = MACH.filter(function (m) { return m.modele === 'STIHL MS 661'; }), ms661r = ms661.filter(function (m) { return m.ret.length >= 2; });
+    var ech = RECL.filter(function (r) { return r.n === 'R-2026-118'; })[0];
+    var c31 = MACH.filter(function (m) { return m.serie === 'C-31 0285'; })[0];
+    var DEC = [
+      [pl(red.length, 'réclamation', 'réclamations') + ' sans réponse depuis plus de 48 h : un responsable nommé pour chacune et le client rappelé aujourd\'hui.', 'Directeur général, avec les responsables des sociétés'],
+      ['Demande d\'échange de la tronçonneuse ' + ech.machine + ' n° ' + ech.serie + ' (' + ech.client + ', 3e retour) : accepter l\'échange ou proposer une autre solution, et le dire au client.', 'Responsable après-vente SACRI'],
+      [ms661r.length + ' tronçonneuses ' + ms661[0].modele + ' sur ' + ms661.length + ' vendues sont revenues 2 fois ou plus : faire analyser la cause (usage, pièce ou réglage) par le chef d\'atelier.', 'Chef d\'atelier SACRI'],
+      ['Compresseur n° ' + c31.serie + ' (' + c31.client + ') revenu ' + c31.ret.length + ' fois, 2 fois pour surchauffe : diagnostic complet avant toute nouvelle réparation.', 'Responsable atelier PST-CI']
+    ];
+    var cmax = causes[0][1];
+    $('rap').innerHTML =
+      '<header class="rp-h"><img src="assets/logo-sacri.png" alt="SACRI"><div><p class="rp-k">Service client et après-vente, groupe SACRI</p><h2>Rapport des réclamations de la semaine</h2><p class="rp-s">Pour la réunion du lundi matin. Réclamations reçues du 6 au 19 novembre 2026, situation au ' + jour(REF) + ' 2026 à ' + hh(REF) + '.</p></div></header>' +
+      '<p class="rp-demo">Données de démonstration : clients, machines et numéros fictifs.</p>' +
+      '<div class="rp-k4">' +
+        '<div><b>' + n0(all.length) + '</b><span>réclamations reçues</span></div>' +
+        '<div><b>' + n0(op.length) + '</b><span>encore ouvertes</span></div>' +
+        '<div class="r"><b>' + n0(red.length) + '</b><span>sans réponse depuis plus de 48 h</span></div>' +
+        '<div><b>' + hfmt(moy) + '</b><span>délai moyen de première réponse (médiane ' + hfmt(med) + ', sur ' + n0(repd.length) + ' répondues)</span></div>' +
+      '</div>' +
+      '<div class="rp-g">' +
+        '<section><h3>Par société</h3><table class="rp-t"><thead><tr><th>Société</th><th>Reçues</th><th>Ouvertes</th><th>+ de 48 h</th><th>Délai moyen de réponse</th></tr></thead><tbody>' +
+          socs.map(function (x) { return '<tr><td>' + esc(x.k) + '</td><td>' + n0(x.n) + '</td><td>' + n0(x.o) + '</td><td class="' + (x.r ? 'r' : '') + '">' + n0(x.r) + '</td><td>' + (x.m == null ? '<span class="r">aucune réponse</span>' : hfmt(x.m) + (x.sr ? ' <small>(' + n0(x.sr) + ' sans réponse)</small>' : '')) + '</td></tr>'; }).join('') +
+        '</tbody></table>' +
+        '<h3>Causes principales</h3><div class="rp-c">' + causes.map(function (c) { return '<p><span>' + esc(c[0]) + '</span><i><em style="width:' + Math.round(c[1] / cmax * 100) + '%"></em></i><b>' + n0(c[1]) + '</b></p>'; }).join('') + '</div></section>' +
+        '<section><h3>3 réclamations à risque</h3>' + risk.map(function (r, i) {
+          return '<div class="rp-r"><p class="t"><span class="n">' + (i + 1) + '</span>' + esc(r.client) + ' <small>' + esc(r.soc) + ', ' + esc(r.n) + '</small></p><p>' + esc(r.quoi) + '.</p><p class="m">Reçue le ' + dd(r.recue) + ', <b>sans réponse depuis ' + agel(hours(r.recue, REF)) + '</b>. Suivi : ' + esc(r.suivi) + '.</p></div>';
+        }).join('') + '</section>' +
+      '</div>' +
+      '<section><h3>Machines qui reviennent <small>' + n0(MACH.length) + ' machines suivies, ' + n0(back.length) + ' revenues, dont ' + n0(rec.length) + ' 2 fois ou plus ; ' + n0(medv) + ' j en médiane de la vente au premier retour</small></h3><table class="rp-t rp-m"><thead><tr><th>N° de série</th><th>Machine</th><th>Client</th><th>Retours</th><th>Dernier motif</th></tr></thead><tbody>' +
+        rec.map(function (m) { var l = m.ret[m.ret.length - 1], same = m.ret.some(function (r, i) { return m.ret.some(function (q, j) { return j !== i && q.motif === r.motif; }); }); return '<tr><td>' + esc(m.serie) + '</td><td>' + esc(m.modele) + '</td><td>' + esc(m.client) + '</td><td class="' + (m.ret.length >= 3 ? 'r' : '') + '">' + n0(m.ret.length) + '</td><td>' + esc(l.motif) + ', ' + dd(l.d) + (same ? ' <small class="r">même panne</small>' : '') + '</td></tr>'; }).join('') +
+      '</tbody></table></section>' +
+      '<section><h3>Décisions à prendre</h3><ol class="rp-dec">' + DEC.map(function (d) { return '<li><p>' + esc(d[0]) + '</p><p class="q">Qui tranche : ' + esc(d[1]) + '</p></li>'; }).join('') + '</ol></section>' +
+      '<p class="rp-f">SACRI, service client et après-vente. Rapport préparé automatiquement chaque lundi à 7 h et envoyé à la direction. Données de démonstration.</p>';
+  }
+
   var bound = false;
   function bind() {
     if (bound) return; bound = true;
     $('rc-alert-all').addEventListener('click', function () { var red = ouvertes(recl()).filter(function (r) { return etat(r) === 'rouge'; }).sort(function (a, b) { return dt(a.recue) - dt(b.recue); }); if (red.length) alerte(red); });
     $('rt-q').addEventListener('input', function () { qS = this.value.trim(); renderSearch(); });
+    $('rap-print').addEventListener('click', function () { window.print(); });
     var q = new URLSearchParams(location.search).get('serie');
     if (q) { qS = q; $('rt-q').value = q; }
   }
   window.SacriSuivi = {
     counts: function (D0, soc) { REF = D0.ref; var o = RECL.filter(function (r) { return !r.fin && (soc === 'Groupe' || r.soc === soc); }); return { red: o.filter(function (r) { return etat(r) === 'rouge'; }).length, rec: MACH.filter(function (m) { return m.ret.length >= 2 && (soc === 'Groupe' || m.soc === soc); }).length }; },
-    render: function (v, soc, D0) { D = D0; REF = D0.ref; SOC = soc; bind(); if (v === 'reclamations') renderRecl(); if (v === 'retours') renderRet(); }
+    render: function (v, soc, D0) { D = D0; REF = D0.ref; SOC = soc; bind(); if (v === 'reclamations') renderRecl(); if (v === 'retours') renderRet(); if (v === 'rapport') renderRap(); }
   };
 })();

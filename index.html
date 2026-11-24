@@ -8,9 +8,9 @@
 <title>SACRI, service client et après-vente</title>
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=20261124g">
-<link rel="stylesheet" href="assets/envoi.css?v=20261124g">
-<link rel="stylesheet" href="assets/suivi.css?v=20261124g">
+<link rel="stylesheet" href="assets/style.css?v=20261124h">
+<link rel="stylesheet" href="assets/envoi.css?v=20261124h">
+<link rel="stylesheet" href="assets/suivi.css?v=20261124h">
 </head>
 <body>
 <div class="app">
@@ -22,6 +22,7 @@
     <a class="ni" href="#messages" data-v="messages"><i data-i="inbox"></i>Boîte de réception<span class="k" id="k-msg"></span></a>
     <a class="ni" href="#atelier" data-v="atelier"><i data-i="kanban"></i>Atelier<span class="k red" id="k-at"></span></a>
     <a class="ni" href="#reclamations" data-v="reclamations"><i data-i="flag"></i>Réclamations<span class="k red" id="k-rc"></span></a>
+    <a class="ni" href="#rapport" data-v="rapport"><i data-i="file-text"></i>Rapport de la semaine</a>
     <a class="ni" href="#retours" data-v="retours"><i data-i="rotate-ccw"></i>Retours machines<span class="k" id="k-rt"></span></a>
     <p class="nl">Outils</p>
     <a class="ni" href="#envoi" data-v="envoi"><i data-i="send"></i>Écrire aux clients</a>
@@ -78,8 +79,12 @@
   </section>
 
   <section class="view" id="v-reclamations">
-    <div class="vh"><h1>Réclamations</h1><p class="lede" id="rc-lede"></p></div>
+    <div class="vh vh-a"><div><h1>Réclamations</h1><p class="lede" id="rc-lede"></p></div><a class="bt pri" href="#rapport"><i data-i="file-text"></i>Rapport de la semaine</a></div>
     <div class="kstrip" id="rc-kpis"></div>
+    <div class="sh"><h2>Escalade automatique</h2><p class="hint">Réglages actifs : chaque alerte part sur WhatsApp et par e-mail, sans qu'on y pense.</p></div>
+    <div class="esc" id="rc-esc"></div>
+    <div class="sh"><h2>Une réclamation suivie de bout en bout</h2><p class="hint">Exemple réel de démonstration, du message du client à la clôture.</p></div>
+    <div class="card frc2" id="rc-frise"></div>
     <div class="sh"><h2>Réclamations ouvertes par société</h2><p class="hint">Cliquez une société pour filtrer.</p></div>
     <div class="socs" id="rc-socs"></div>
     <div class="sh"><h2>Suivi des réclamations</h2><button class="bt pri" id="rc-alert-all"></button></div>
@@ -87,6 +92,11 @@
       <div class="rc-tools"><div class="seg" id="rc-seg"></div><p class="hint">Rouge : sans réponse depuis plus de 48 h.</p></div>
       <div id="rc-rows"></div>
     </div>
+  </section>
+
+  <section class="view" id="v-rapport">
+    <div class="vh vh-a noprint"><div><h1>Rapport de la semaine</h1><p class="lede">Une page pour la réunion du lundi matin. Pour la version PDF : bouton « Imprimer ou enregistrer en PDF », puis « Enregistrer au format PDF ».</p></div><div class="rp-b"><a class="bt" href="#reclamations"><i data-i="arrow-left"></i>Réclamations</a><button class="bt pri" id="rap-print"><i data-i="file-check"></i>Imprimer ou enregistrer en PDF</button></div></div>
+    <article class="rap card" id="rap"></article>
   </section>
 
   <section class="view" id="v-retours">
@@ -144,10 +154,10 @@
   <div class="dr-b" id="dr-b"></div>
 </aside>
 
-<script src="assets/icons.js?v=20261124g"></script>
-<script src="assets/donnees.js?v=20261124g"></script>
-<script src="assets/envoi.js?v=20261124g"></script>
-<script src="assets/suivi.js?v=20261124g"></script>
-<script src="assets/app.js?v=20261124g"></script>
+<script src="assets/icons.js?v=20261124h"></script>
+<script src="assets/donnees.js?v=20261124h"></script>
+<script src="assets/envoi.js?v=20261124h"></script>
+<script src="assets/suivi.js?v=20261124h"></script>
+<script src="assets/app.js?v=20261124h"></script>
 </body>
 </html>
