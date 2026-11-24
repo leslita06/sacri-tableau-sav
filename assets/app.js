@@ -354,7 +354,7 @@
   var lastMob = window.innerWidth <= 900;
   window.addEventListener('resize', function () { var m = window.innerWidth <= 900; if (m !== lastMob) { lastMob = m; render(); } });
 
-  fetch('data/donnees.json?v=20261119a').then(function (r) { return r.json(); }).then(function (j) {
+  var boot = function (j) {
     D = j; window.SACRI_D = j;
     var r = dt(D.ref);
     $('date').textContent = JOURS[r.getDay()] + ' ' + r.getDate() + ' ' + MOIS[r.getMonth()] + ', ' + r.getHours() + ' h';
@@ -362,5 +362,7 @@
     if (q.get('societe') && SOCS.indexOf(q.get('societe')) >= 0) soc = q.get('societe');
     renderSel();
     setVue(q.get('vue') || location.hash.slice(1) || 'messages');
-  });
+  };
+  if (window.SACRI_DATA) boot(window.SACRI_DATA);
+  else fetch('data/donnees.json?v=20261124f').then(function (r) { return r.json(); }).then(boot);
 })();
