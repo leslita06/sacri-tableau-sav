@@ -2,121 +2,111 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>SACRI, service client et après-vente</title>
+<meta name="theme-color" content="#F7F7F5">
+<title>SACRI · Service client et après-vente</title>
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=20261119a">
-<link rel="stylesheet" href="assets/vues.css?v=20261119a">
+<link rel="stylesheet" href="assets/style.css?v=20261124c">
+<link rel="stylesheet" href="assets/envoi.css?v=20261124c">
 </head>
 <body>
-<div class="demo"><div class="wrap"><b>Données illustratives</b> : clients, numéros et chiffres fictifs, ils ne reflètent pas l'activité de SACRI</div></div>
+<div class="app">
 
-<header class="masthead">
-  <div class="wrap mh">
-    <img src="assets/logo-sacri.png" alt="SACRI" class="logo" width="229" height="114">
-    <div class="mh-txt">
-      <p class="eyebrow">Service client et après-vente</p>
-      <p class="arrete" id="arrete"></p>
-    </div>
+<aside class="side" aria-label="Navigation">
+  <div class="brand"><img src="assets/logo-sacri.png" alt="SACRI"><div><p class="bn">Service client</p><p class="bs">et après-vente</p></div></div>
+  <nav class="nav-s">
+    <p class="nl">Suivi</p>
+    <a class="ni" href="#messages" data-v="messages"><i data-i="inbox"></i>Boîte de réception<span class="k" id="k-msg"></span></a>
+    <a class="ni" href="#atelier" data-v="atelier"><i data-i="kanban"></i>Atelier<span class="k red" id="k-at"></span></a>
+    <p class="nl">Outils</p>
+    <a class="ni" href="#envoi" data-v="envoi"><i data-i="send"></i>Écrire aux clients</a>
+    <a class="ni" href="#piece" data-v="piece"><i data-i="camera"></i>Pièce sur photo</a>
+  </nav>
+  <div class="side-f">
+    <span class="pill-demo"><i data-i="info"></i>Données de démonstration</span>
+    <p>Clients, numéros et chiffres fictifs. Aucun message ne part de cette page.</p>
   </div>
-</header>
+</aside>
 
-<nav class="views" aria-label="Choisir une vue">
-  <div class="wrap vw" id="views"></div>
-</nav>
-
-<div class="filters" id="filters">
-  <div class="wrap fl">
-    <span class="fl-l">Société</span>
-    <div class="socs" id="socs"></div>
-  </div>
-</div>
-
-<main class="wrap">
-
-  <section class="view" id="v-messages" hidden>
-    <div class="intro">
-      <h1>Les messages reçus</h1>
-      <p id="m-phrase" class="lede"></p>
-    </div>
-    <section class="kpis k4" id="m-kpis" aria-label="Chiffres clés des messages"></section>
-    <div class="grid2 sp">
-      <div class="card">
-        <p class="cap">Messages reçus, par canal</p>
-        <p class="sub">Depuis le lundi 16/11, selon leur statut</p>
-        <div class="ch"><canvas id="c-canal" aria-label="Messages par canal"></canvas></div>
-      </div>
-      <div class="card">
-        <p class="cap">Délai de première réponse, par canal</p>
-        <p class="sub">Part des messages traités dans le délai visé, et délai moyen</p>
-        <div class="ch"><canvas id="c-delai" aria-label="Délai de réponse par canal"></canvas></div>
-      </div>
-    </div>
-    <div class="card tcard">
-      <div class="thead">
-        <p class="cap">Chaque message, son sujet et son statut <span class="cnt" id="d-cnt"></span></p>
-        <div class="tf">
-          <select id="f-canal" aria-label="Canal"></select>
-          <select id="f-statut" aria-label="Statut"></select>
-          <input id="f-q" type="search" placeholder="Client, sujet, message" aria-label="Rechercher">
+<div class="main">
+  <div class="demo-strip"><b>Démonstration</b> : clients, numéros et chiffres fictifs, ils ne reflètent pas l'activité de SACRI.</div>
+  <header class="bar">
+    <div class="bar-in">
+      <img src="assets/logo-sacri.png" alt="SACRI" class="brand-m">
+      <div class="crumb"><span class="grp">Service client</span><i data-i="chevron-right" class="sep"></i><b id="crumb-v">Boîte de réception</b></div>
+      <div class="bar-r">
+        <span class="asof">Situation au <b id="date"></b></span>
+        <div class="sel">
+          <button class="sel-b" id="sel-b" aria-haspopup="true" aria-expanded="false"><i data-i="building-2"></i><span id="sel-l">Toutes les sociétés</span><i data-i="chevron-down"></i></button>
+          <div class="menu" id="menu"></div>
         </div>
       </div>
-      <div class="tscroll"><table class="tbl" id="t-dem">
-        <thead><tr><th>N°</th><th>Reçu le</th><th>Canal</th><th>Client</th><th>Sujet</th><th class="r">Délai de réponse</th><th>Statut</th><th>Suivi par</th></tr></thead>
-        <tbody></tbody>
-      </table></div>
     </div>
-  </section>
+  </header>
 
-  <section class="view" id="v-atelier" hidden>
-    <div class="intro">
-      <h1>Les machines en atelier</h1>
-      <p id="a-phrase" class="lede"></p>
-    </div>
-    <ol class="etapes" id="etapes" aria-label="Étapes de réparation"></ol>
-    <div class="at-grid">
-      <div class="card tcard at-list">
-        <div class="thead">
-          <p class="cap">Machines suivies <span class="cnt" id="a-cnt"></span></p>
-          <div class="tf"><select id="f-etape" aria-label="Étape"></select></div>
+  <main class="content">
+
+  <section class="view" id="v-messages">
+    <div class="vh"><h1>Boîte de réception</h1><p class="lede" id="m-lede"></p></div>
+    <div class="kstrip" id="m-kpis"></div>
+    <div class="ibx card" id="ibx">
+      <div class="ib-list">
+        <div class="ib-tools">
+          <label class="srch"><i data-i="search"></i><input id="f-q" type="search" placeholder="Rechercher un client, un sujet" aria-label="Rechercher"></label>
+          <div class="seg" id="f-st"></div>
         </div>
-        <div id="a-rows"></div>
+        <div class="ib-rows" id="ib-rows"></div>
       </div>
-      <aside class="card at-det" id="a-det"></aside>
+      <div class="ib-conv" id="ib-conv"></div>
     </div>
+    <div class="sh"><h2>Par canal</h2><p class="hint">Messages reçus depuis lundi et part traitée dans le délai visé.</p></div>
+    <div class="chan" id="m-chan"></div>
   </section>
 
-  <section class="view" id="v-envoi" hidden>
-    <div class="intro">
-      <h1>Écrire aux clients sur WhatsApp</h1>
-      <p class="lede">Plus besoin d'ouvrir WhatsApp client par client. Les messages de suivi <b>partent tout seuls</b> quand une machine change d'étape ; pour une relance ou une promotion, la <b>campagne</b> prépare en une fois le message de chaque client choisi, et l'envoie en un clic.</p>
-    </div>
+  <section class="view" id="v-atelier">
+    <div class="vh"><h1>Atelier</h1><p class="lede" id="a-lede"></p></div>
+    <div class="kstrip" id="a-kpis"></div>
+    <div class="sh"><h2>Machines en cours</h2><p class="hint">Cliquez une machine pour voir son suivi et le message envoyé au client.</p></div>
+    <div class="kb" id="kb"></div>
+    <div class="sh"><h2>Rendues aux clients <span class="cnt" id="r-cnt"></span></h2></div>
+    <div class="rendu" id="rendu"></div>
+  </section>
+
+  <section class="view" id="v-envoi">
+    <div class="vh"><h1>Écrire aux clients</h1><p class="lede">Les messages de suivi <b>partent tout seuls</b> quand une machine change d'étape ; pour une relance ou une promotion, la <b>campagne</b> prépare en une fois le message de chaque client choisi. Simulation : aucun message ne part de cette page.</p></div>
     <div class="modes" id="modes" role="tablist"></div>
     <div id="envoi"></div>
   </section>
 
-  <section class="view" id="v-piece" hidden>
-    <div class="intro">
-      <h1>Identifier une pièce sur photo</h1>
-      <p class="lede">Le client envoie une photo sur WhatsApp ; le service client trouve la bonne pièce en quatre étapes, sans erreur de référence.</p>
-    </div>
+  <section class="view" id="v-piece">
+    <div class="vh"><h1>Pièce sur photo</h1><p class="lede">Le client envoie une photo sur WhatsApp ; le service client trouve la bonne pièce en quatre étapes, sans erreur de référence.</p></div>
     <ol class="steps" id="steps"></ol>
-    <p class="cap cap-out" id="cap-cases">Huit demandes types et la réponse attendue</p>
+    <div class="sh"><h2 id="cap-cases">Demandes types et réponse attendue</h2></div>
     <div class="cases" id="cases"></div>
   </section>
-</main>
 
-<footer class="foot">
-  <div class="wrap">
-    <img src="assets/logo-sacri.png" alt="SACRI" class="flogo" width="229" height="114">
-    <p>Chiffres calculés à partir du classeur « Service client et après-vente », situation figée au jeudi 19 novembre 2026, 11 h. Données illustratives : clients et numéros fictifs, aucun message n'est réellement envoyé depuis cette page. Photos produits : sacri-ci.com.</p>
-  </div>
-</footer>
+  <footer class="foot">Chiffres calculés à partir du classeur « Service client et après-vente », situation figée au jeudi 19 novembre 2026, 11 h. Données de démonstration : clients et numéros fictifs, aucun message n'est réellement envoyé depuis cette page. Photos produits : sacri-ci.com.</footer>
+  </main>
+</div>
 
-<script src="assets/chart.umd.min.js?v=441"></script>
-<script src="assets/envoi.js?v=20261119a"></script>
-<script src="assets/app.js?v=20261119a"></script>
+<nav class="tabbar" aria-label="Navigation">
+  <a href="#messages" data-v="messages"><i data-i="inbox"></i><span>Messages</span><em id="t-msg"></em></a>
+  <a href="#atelier" data-v="atelier"><i data-i="kanban"></i><span>Atelier</span><em id="t-at"></em></a>
+  <a href="#envoi" data-v="envoi"><i data-i="send"></i><span>Écrire</span></a>
+  <a href="#piece" data-v="piece"><i data-i="camera"></i><span>Pièce</span></a>
+</nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dr-h"><span id="dr-id">Machine</span><button class="x" id="dr-x" aria-label="Fermer"><i data-i="x"></i></button></div>
+  <div class="dr-b" id="dr-b"></div>
+</aside>
+
+<script src="assets/icons.js?v=20261124c"></script>
+<script src="assets/envoi.js?v=20261124c"></script>
+<script src="assets/app.js?v=20261124c"></script>
 </body>
 </html>

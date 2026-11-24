@@ -52,13 +52,13 @@
       '<ul class="rg">' + REGLES.map(function (r, i) { return '<li id="rg' + i + '"><span class="ri">' + svg(r[0]) + '</span><span class="rt"><b>' + r[1] + '</b><span>' + r[2] + '</span></span><span class="rq">' + r[3] + '</span><span class="sw on" role="img" aria-label="Règle active"><i></i></span></li>'; }).join('') + '</ul>' +
       '<p class="garde">' + svg('shield') + 'Jamais de prix, de délai ni de geste commercial dans un message automatique : un conseiller les donne.</p></div></div>' +
       '<div class="au-r"><div class="card live"><div class="lh"><p class="cap"><span class="dot"></span>En direct, ce matin</p><button type="button" class="btn sm" id="au-go">' + svg('reset') + 'Rejouer</button></div>' +
-      '<div class="cpt"><div><b id="au-n">0</b><span>messages partis</span></div><div><b id="au-l">0</b><span>lus</span></div><div><b id="au-r">0</b><span>réponses</span></div><div><b>0</b><span>agent mobilisé</span></div></div>' +
+      '<div class="cpt"><div><b id="au-n">–</b><span>messages partis</span></div><div><b id="au-l">–</b><span>lus</span></div><div><b id="au-r">–</b><span>réponses</span></div><div><b>Aucun</b><span>agent mobilisé</span></div></div>' +
       '<ol class="feed" id="feed"></ol></div>' +
       '<div class="ph-wrap"><div class="phone"><div class="ph-h"><span class="pa">S</span><span><b id="ph-cl">Client</b><i>vu par le client sur WhatsApp</i></span></div><div class="ph-c" id="ph-c"></div></div></div></div>' +
       '</div>';
     $('au-go').addEventListener('click', function () { auto(soc); });
     var n = 0, l = 0, rp = 0;
-    function maj() { $('au-n').textContent = n; $('au-l').textContent = l; $('au-r').textContent = rp; }
+    function maj() { $('au-n').textContent = n || '–'; $('au-l').textContent = l || '–'; $('au-r').textContent = rp || '–'; }
     if (!ev.length) { $('feed').innerHTML = '<li class="empty">Aucun message automatique pour ' + esc(soc) + ' ce matin.</li>'; return; }
     ev.forEach(function (e, i) {
       var t0 = T(600 + i * 2600);
