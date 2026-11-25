@@ -6,12 +6,12 @@
   var CANAUX = [['WhatsApp', 'message-circle'], ['E-mail', 'mail'], ['Téléphone', 'phone'], ['Comptoir', 'store']];
   var CIC = {}; CANAUX.forEach(function (c) { CIC[c[0]] = c[1]; });
   var COLS = [
-    ['Reçue', 'Reçue', '#A3A3A0', 'Machine déposée, bon remis'],
-    ['Diagnostic', 'Diagnostic', '#6B8FB8', 'Le technicien cherche la panne'],
-    ['Devis envoyé', 'Devis en attente', '#D99A1E', 'On attend l\'accord du client'],
-    ['Accord client', 'Attente pièce', '#8E79B8', 'Pièce à sortir ou à commander'],
+    ['Reçue', 'Reçue', '#94A3B8', 'Machine déposée, bon remis'],
+    ['Diagnostic', 'Diagnostic', '#0EA5E9', 'Le technicien cherche la panne'],
+    ['Devis envoyé', 'Devis en attente', '#F59E0B', 'On attend l\'accord du client'],
+    ['Accord client', 'Attente pièce', '#8B5CF6', 'Pièce à sortir ou à commander'],
     ['En réparation', 'En réparation', '#E95B0F', 'Le technicien répare'],
-    ['Prête', 'Réparée', '#3FA06A', 'Prête à retirer']
+    ['Prête', 'Réparée', '#10B981', 'Prête à retirer']
   ];
   var PROG = COLS.map(function (c) { return [c[0], c[1]]; }).concat([['Remise', 'Rendue']]);
   var ETQ = {}; PROG.forEach(function (e) { ETQ[e[0]] = e[1]; });
@@ -51,6 +51,30 @@
   function stPill(x) { var s = st3(x); return '<span class="pill ' + STP[s] + '"><i class="d"></i>' + s + '</span>'; }
   function dem() { return D.demandes.filter(function (x) { return soc === 'Groupe' || x.soc === soc; }); }
   function atl() { return D.atelier.filter(function (x) { return soc === 'Groupe' || x.soc === soc; }); }
+  // filtres communs (période, canal, statut) : appliqués aux chiffres et aux graphes
+  function demF() {
+    var F = window.SF, t0 = window.SG.since(D.ref);
+    return dem().filter(function (x) {
+      if (dt(x.recue).getTime() < t0) return false;
+      if (F.canal !== 'tous' && x.canal !== F.canal) return false;
+      var s = st3(x);
+      if (F.statut === 'atraiter' && s === 'Traité') return false;
+      if (F.statut === 'retard' && !(s === 'Non traité' || x.statut === 'Répondu hors délai')) return false;
+      if (F.statut === 'traites' && s !== 'Traité') return false;
+      return true;
+    });
+  }
+  function atlF() {
+    var F = window.SF, t0 = window.SG.since(D.ref);
+    return atl().filter(function (x) {
+      var last = Math.max(dt(x.recue).getTime(), x.devis_le ? dt(x.devis_le).getTime() : 0, x.accord ? dt(x.accord).getTime() : 0, x.prete ? dt(x.prete).getTime() : 0, x.remise ? dt(x.remise).getTime() : 0);
+      if (F.per !== 'tout' && x.statut === 'Remise' && last < t0) return false;
+      if (F.statut === 'atraiter' && (x.statut === 'Remise' || x.statut === 'Prête')) return false;
+      if (F.statut === 'retard' && x.alerte !== 'En retard') return false;
+      if (F.statut === 'traites' && !(x.statut === 'Remise' || x.statut === 'Prête')) return false;
+      return true;
+    });
+  }
 
   // ---------- photos ----------
   function photo(a) {
@@ -108,7 +132,7 @@
     return out;
   }
   function renderMessages() {
-    var d = dem(), ref = dt(D.ref), J = days();
+    var d = demF(), ref = dt(D.ref), J = days();
     var c = { 'Traité': 0, 'En cours': 0, 'Non traité': 0 };
     d.forEach(function (x) { c[st3(x)]++; });
     var perDay = J.map(function (j) { return d.filter(function (x) { return sameDay(dt(x.recue), j); }).length; });
@@ -123,7 +147,7 @@
     var aT = c['Non traité'] + c['En cours'];
     var nt = d.filter(function (x) { return st3(x) === 'Non traité'; });
 
-    $('m-lede').innerHTML = '<b>' + pl(d.length, 'message') + '</b> ' + (d.length > 1 ? 'reçus' : 'reçu') + ' depuis le lundi 16 novembre' + (soc === 'Groupe' ? '' : ' chez ' + esc(soc)) + ' : ' + n0(c['Traité']) + ' ' + (c['Traité'] > 1 ? 'traités' : 'traité') +
+    $('m-lede').innerHTML = '<b>' + pl(d.length, 'message') + '</b> ' + (d.length > 1 ? 'reçus' : 'reçu') + ' ' + window.SG.perLbl('depuis le lundi 16 novembre') + (window.SF.canal !== 'tous' ? ' sur ' + esc(window.SF.canal) : '') + (soc === 'Groupe' ? '' : ' chez ' + esc(soc)) + ' : ' + n0(c['Traité']) + ' ' + (c['Traité'] > 1 ? 'traités' : 'traité') +
       (c['En cours'] ? ', ' + n0(c['En cours']) + ' en cours' : '') + (nt.length ? ', <span class="r">' + pl(nt.length, 'non traité', 'non traités') + '</span> au-delà du délai visé.' : ', aucun en retard.');
 
     var h = kc({ ic: 'inbox', l: 'Messages reçus', v: n0(d.length), sp: spark(perDay, '#E95B0F'), cls: 'key',
@@ -131,10 +155,10 @@
     h += kc({ ic: 'triangle-alert', l: 'Non traités', v: nt.length ? n0(nt.length) : 'Aucun', cls: nt.length ? 'bad' : '',
       s: nt.length ? '<span><b>' + esc(nt[0].client) + '</b> attend depuis ' + dur(nt[0].delai) + '</span>' : c['En cours'] ? pl(c['En cours'], 'message') + ' en cours, dans le délai' : 'tous les messages ont une réponse' });
     h += kc({ ic: 'timer', l: 'Délai moyen de réponse', v: moy == null ? '–' : moy < 1 ? n0(Math.round(moy * 60)) : n1(moy), u: moy == null ? '' : moy < 1 ? 'min' : 'h',
-      sp: mj.filter(function (x) { return x != null; }).length > 1 ? spark(mj.map(function (x) { return x == null ? 0 : x; }), '#6B6B6B') : '',
+      sp: mj.filter(function (x) { return x != null; }).length > 1 ? spark(mj.map(function (x) { return x == null ? 0 : x; }), '#64748B') : '',
       s: ld[0] != null ? delta(ld[0], ld[1], false, function (v) { return dur(v); }, 'sur le dernier jour') : 'sur les messages traités' });
     h += kc({ ic: 'circle-check-big', l: 'Répondus dans le délai visé', v: pok == null ? '–' : n0(pok), u: pok == null ? '' : '%',
-      sp: oj.filter(function (x) { return x != null; }).length > 1 ? spark(oj.map(function (x) { return x == null ? 0 : x; }), '#18794E') : '',
+      sp: oj.filter(function (x) { return x != null; }).length > 1 ? spark(oj.map(function (x) { return x == null ? 0 : x; }), '#10B981') : '',
       s: lo[0] != null ? delta(Math.round(lo[0]), Math.round(lo[1]), true, function (v) { return n0(v) + ' pts'; }, 'sur le dernier jour') : 'délai visé selon le canal' });
     $('m-kpis').innerHTML = h;
 
@@ -145,6 +169,31 @@
 
     renderRows(d);
     renderChan(d);
+    msgGraphs(d, J);
+  }
+  function msgGraphs(d, J) {
+    var G = window.SG, box = $('m-graphs');
+    if (!d.length) { box.innerHTML = '<div class="nodata card">Aucun message pour ces filtres.</div>'; return; }
+    var lab = J.map(function (j) { return JC[j.getDay()] + ' ' + j.getDate(); });
+    var cans = CANAUX.map(function (c) { return c[0]; }).filter(function (c) { return d.some(function (x) { return x.canal === c; }); });
+    var rep = d.filter(function (x) { return x.rep; }), ok = rep.filter(function (x) { return x.statut === 'Répondu dans le délai'; }).length;
+    var pok = rep.length ? Math.round(ok / rep.length * 100) : 0;
+    var ob = {}; d.forEach(function (x) { ob[x.objet] = (ob[x.objet] || 0) + 1; });
+    var obs = Object.keys(ob).map(function (k) { return [k, ob[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
+    box.innerHTML = G.card('ch-m-jour', 'Messages reçus par jour', 'par canal', 230, { head: G.legend(cans.map(function (c) { return [c, G.CANC[c]]; })) }, 'w2') +
+      G.card('ch-m-can', 'Répartition par canal', pl(d.length, 'message'), 230, { center: '<b>' + n0(d.length) + '</b><span>messages</span>', foot: G.legend(cans.map(function (c) { return [c, G.CANC[c], n0(d.filter(function (x) { return x.canal === c; }).length)]; })) }) +
+      G.card('ch-m-gauge', 'Répondus dans le délai visé', 'sur ' + pl(rep.length, 'message traité', 'messages traités'), 150, { center: '<b>' + (rep.length ? n0(pok) + '\u00a0%' : '–') + '</b><span>' + n0(ok) + ' sur ' + n0(rep.length) + '</span>', foot: '<p class="gc-f">' + (rep.length - ok ? '<span class="r">' + pl(rep.length - ok, 'réponse', 'réponses') + ' hors délai</span>' : 'aucune réponse hors délai') + '</p>' }, 'gauge') +
+      G.card('ch-m-delai', 'Délai moyen de réponse par jour', 'en heures, sur les messages traités', 200, null, 'w2') +
+      G.card('ch-m-obj', 'Sujets les plus fréquents', 'nombre de messages', 200, null, 'w2');
+    G.mk('ch-m-jour', { type: 'bar', data: { labels: lab, datasets: cans.map(function (c) { return { label: c, data: J.map(function (j) { return d.filter(function (x) { return x.canal === c && sameDay(dt(x.recue), j); }).length; }), backgroundColor: G.CANC[c], stack: 's', maxBarThickness: 44 }; }) },
+      options: { interaction: { mode: 'index', intersect: false }, scales: { x: G.ax({ stacked: true }), y: G.ay({ stacked: true }) }, plugins: { tooltip: { filter: function (i) { return i.parsed.y > 0; } } } } });
+    G.donut('ch-m-can', cans, cans.map(function (c) { return d.filter(function (x) { return x.canal === c; }).length; }), cans.map(function (c) { return G.CANC[c]; }), 'messages');
+    G.gauge('ch-m-gauge', pok, 100, pok >= 80 ? '#10B981' : pok >= 60 ? '#F59E0B' : '#EF4444');
+    var md = J.map(function (j) { var r = rep.filter(function (x) { return sameDay(dt(x.recue), j); }); return r.length ? +(r.reduce(function (s, x) { return s + x.delai; }, 0) / r.length).toFixed(1) : null; });
+    G.mk('ch-m-delai', { type: 'line', data: { labels: lab, datasets: [{ label: 'Délai moyen', data: md, borderColor: '#0EA5E9', backgroundColor: 'rgba(14,165,233,.10)', fill: true, spanGaps: true, borderWidth: 2.2 }] },
+      options: { interaction: { mode: 'index', intersect: false }, scales: { x: G.ax(), y: G.ay({ ticks: { color: '#94A3B8', maxTicksLimit: 5, callback: function (v) { return n1(v).replace(/,0$/, '') + ' h'; } } }) }, plugins: { tooltip: { callbacks: { label: function (c) { return ' Délai moyen : ' + (c.parsed.y == null ? 'aucun' : dur(c.parsed.y)); } } } } } });
+    G.mk('ch-m-obj', { type: 'bar', data: { labels: obs.map(function (o) { return o[0]; }), datasets: [{ label: 'Messages', data: obs.map(function (o) { return o[1]; }), backgroundColor: '#E95B0F', maxBarThickness: 18 }] },
+      options: { indexAxis: 'y', scales: { x: G.ay(), y: { grid: { display: false }, border: { display: false }, ticks: { color: '#334155', autoSkip: false, font: { size: 11.5 }, callback: function (v) { var t = this.getLabelForValue(v); return t.length > 22 ? t.slice(0, 21) + '\u2026' : t; } } } } } });
   }
   function filtered(d) {
     var q = fq.toLowerCase();
@@ -226,7 +275,7 @@
       var rp = r.filter(function (x) { return x.rep; }), ok = rp.filter(function (x) { return x.statut === 'Répondu dans le délai'; }).length;
       var moy = rp.length ? rp.reduce(function (s, x) { return s + x.delai; }, 0) / rp.length : null;
       return '<div class="chc"><p class="h"><span class="ti">' + ico(c[1]) + '</span>' + c[0] + '<span class="n">' + n0(r.length) + '</span></p>' +
-        '<div class="tr"><i style="flex:' + t + ';background:#BDBDB8"></i>' + (e ? '<i style="flex:' + e + ';background:#D99A1E"></i>' : '') + (n ? '<i style="flex:' + n + ';background:var(--red)"></i>' : '') + '</div>' +
+        '<div class="tr"><i style="flex:' + t + ';background:#94A3B8"></i>' + (e ? '<i style="flex:' + e + ';background:#F59E0B"></i>' : '') + (n ? '<i style="flex:' + n + ';background:var(--red)"></i>' : '') + '</div>' +
         '<p class="s">' + (rp.length ? '<b>' + n0(Math.round(ok / rp.length * 100)) + ' %</b> dans le délai, en moyenne ' + dur(moy) + ', visé ' + dur(D.vise_canal[c[0]]) : 'en attente de réponse, délai visé ' + dur(D.vise_canal[c[0]])) + '</p></div>';
     }).join('');
   }
@@ -242,11 +291,11 @@
     return st;
   }
   function renderAtelier() {
-    var a = atl(), enc = a.filter(function (x) { return x.statut !== 'Remise'; });
+    var a = atlF(), enc = a.filter(function (x) { return x.statut !== 'Remise'; });
     if (!a.length) {
       $('a-lede').innerHTML = esc(soc) + ' n\'a pas de machine dans le suivi d\'atelier : les réparations du groupe passent par les ateliers SACRI et PST-CI.';
       $('a-kpis').innerHTML = ''; $('kb').innerHTML = '<div class="nodata" style="grid-column:1/-1;flex:1">Aucune machine en atelier pour ' + esc(soc) + '. Choisissez SACRI, PST-CI ou toutes les sociétés.</div>';
-      $('rendu').innerHTML = ''; $('r-cnt').textContent = ''; return;
+      $('rendu').innerHTML = ''; $('r-cnt').textContent = ''; $('a-graphs').innerHTML = ''; return;
     }
     var ret = enc.filter(function (x) { return x.alerte === 'En retard'; }), pr = enc.filter(function (x) { return x.statut === 'Prête'; }), dv = enc.filter(function (x) { return x.statut === 'Devis envoyé'; });
     $('a-lede').innerHTML = '<b>' + pl(enc.length, 'machine') + '</b> ' + (enc.length > 1 ? 'sont' : 'est') + ' à l\'atelier' + (ret.length ? ', dont <span class="r">' + n0(ret.length) + ' en retard</span> sur le délai visé' : '') + (pr.length ? ' ; ' + pl(pr.length, 'machine réparée', 'machines réparées') + ' ' + (pr.length > 1 ? 'attendent' : 'attend') + ' leur client.' : '.');
@@ -256,9 +305,9 @@
     var sLate = J.map(function (d) { return a.filter(function (x) { var s = lateAt(x, d); return s && s.late; }).length; });
     var sReady = J.map(function (d) { return a.filter(function (x) { var s = lateAt(x, d); return s && s.ready; }).length; });
     var h = kc({ ic: 'wrench', l: 'Machines à l\'atelier', v: n0(enc.length), cls: 'key', sp: spark(sOpen, '#E95B0F'), s: delta(sOpen[7], sOpen[0], null, null, 'en une semaine') });
-    h += kc({ ic: 'triangle-alert', l: 'En retard', v: ret.length ? n0(ret.length) : 'Aucune', cls: ret.length ? 'bad' : '', sp: spark(sLate, '#C8352B'), s: delta(sLate[7], sLate[0], false, null, 'en une semaine') });
-    h += kc({ ic: 'circle-check-big', l: 'Réparées, à rendre', v: pr.length ? n0(pr.length) : 'Aucune', sp: spark(sReady, '#18794E'), s: pr.length ? 'clients à prévenir ou à rappeler' : 'aucune machine n\'attend son client' });
-    h += kc({ ic: 'file-text', l: 'Devis en attente d\'accord', v: dv.length ? n0(dv.length) : 'Aucun', s: dv.length ? '<span><b>' + n0(dv.filter(function (x) { return x.alerte === 'Relancer le devis'; }).length) + '</b> à relancer, ' + n0(dv.reduce(function (s, x) { return s + (x.montant || 0); }, 0)) + ' FCFA</span>' : 'tous les devis ont une réponse' });
+    h += kc({ ic: 'triangle-alert', l: 'En retard', v: ret.length ? n0(ret.length) : 'Aucune', cls: ret.length ? 'bad' : '', sp: spark(sLate, '#EF4444'), s: delta(sLate[7], sLate[0], false, null, 'en une semaine') });
+    h += kc({ ic: 'circle-check-big', l: 'Réparées, à rendre', v: pr.length ? n0(pr.length) : 'Aucune', sp: spark(sReady, '#10B981'), s: pr.length ? 'clients à prévenir ou à rappeler' : 'aucune machine n\'attend son client' });
+    h += kc({ ic: 'file-text', l: 'Devis en attente d\'accord', v: dv.length ? n0(dv.length) : 'Aucun', s: dv.length ? '<span><b>' + n0(dv.filter(function (x) { return x.alerte === 'Relancer le devis'; }).length) + '</b> à relancer auprès du client</span>' : 'tous les devis ont une réponse' });
     $('a-kpis').innerHTML = h;
 
     $('kb').innerHTML = COLS.map(function (c) {
@@ -271,7 +320,31 @@
     $('rendu').innerHTML = rd.length ? rd.map(function (x) {
       return '<button class="rc" data-br="' + x.br + '"><img src="' + photo(x) + '" alt="" loading="lazy"><div><p class="cl">' + esc(x.client) + '</p><p class="md">' + esc(x.modele) + ', rendue le ' + dd(x.remise) + ', en ' + x.jours + ' j</p></div></button>';
     }).join('') : '<p class="hint">Aucune machine rendue sur la période.</p>';
+    atGraphs(a, enc, J, sOpen, sLate);
     document.querySelectorAll('#kb .mc, #rendu .rc').forEach(function (b) { b.addEventListener('click', function () { openMachine(D.atelier.filter(function (x) { return x.br === b.getAttribute('data-br'); })[0]); }); });
+  }
+  function atGraphs(a, enc, J, sOpen, sLate) {
+    var G = window.SG, box = $('a-graphs');
+    var cols = ['#94A3B8', '#0EA5E9', '#F59E0B', '#8B5CF6', '#E95B0F', '#10B981'];
+    var mats = {}; enc.forEach(function (x) { mats[x.mat] = (mats[x.mat] || 0) + 1; });
+    var mk = Object.keys(mats).sort(function (p, q) { return mats[q] - mats[p]; });
+    var lt = enc.slice().sort(function (p, q) { return (q.jours / q.vise) - (p.jours / p.vise); }).slice(0, 8);
+    var late = enc.filter(function (x) { return x.alerte === 'En retard'; }).length, inT = enc.length - late;
+    if (!enc.length) { box.innerHTML = '<div class="nodata card">Aucune machine en cours pour ces filtres.</div>'; return; }
+    box.innerHTML = G.card('ch-a-etape', 'Machines par étape', pl(enc.length, 'machine') + ' en cours', 220, null, 'w2') +
+      G.card('ch-a-mat', 'Par type de matériel', 'machines en cours', 220, { center: '<b>' + n0(enc.length) + '</b><span>en cours</span>', foot: G.legend(mk.map(function (k, i) { return [k, G.PAL[i % 6], n0(mats[k])]; })) }) +
+      G.card('ch-a-gauge', 'Dans le délai visé', 'machines en cours', 150, { center: '<b>' + n0(Math.round(inT / enc.length * 100)) + '\u00a0%</b><span>' + n0(inT) + ' sur ' + n0(enc.length) + '</span>', foot: '<p class="gc-f">' + (late ? '<span class="r">' + pl(late, 'machine', 'machines') + ' en retard</span>' : 'aucune machine en retard') + '</p>' }, 'gauge') +
+      G.card('ch-a-trend', 'Charge de l\'atelier sur 8 jours', 'machines présentes et en retard', 200, { head: G.legend([['À l\'atelier', '#E95B0F'], ['En retard', '#EF4444']]) }, 'w2') +
+      G.card('ch-a-jours', 'Jours à l\'atelier et délai visé', 'les 8 plus avancées', 200, { head: G.legend([['Jours', '#0EA5E9'], ['Visé', '#CBD5E1']]) }, 'w2');
+    G.mk('ch-a-etape', { type: 'bar', data: { labels: COLS.map(function (c) { return c[1]; }), datasets: [{ label: 'Machines', data: COLS.map(function (c) { return enc.filter(function (x) { return x.statut === c[0]; }).length; }), backgroundColor: cols, maxBarThickness: 46 }] },
+      options: { scales: { x: G.ax({ ticks: { color: '#64748B', autoSkip: false, maxRotation: 0, font: { size: 11 }, callback: function (v) { var t = this.getLabelForValue(v); return t.indexOf(' ') > 0 ? t.split(' ') : t; } } }), y: G.ay() } } });
+    G.donut('ch-a-mat', mk, mk.map(function (k) { return mats[k]; }), mk.map(function (k, i) { return G.PAL[i % 6]; }), 'machines');
+    G.gauge('ch-a-gauge', inT, enc.length, late ? '#F59E0B' : '#10B981');
+    G.mk('ch-a-trend', { type: 'line', data: { labels: J.map(function (j) { return JC[j.getDay()] + ' ' + j.getDate(); }), datasets: [{ label: 'À l\'atelier', data: sOpen, borderColor: '#E95B0F', backgroundColor: 'rgba(233,91,15,.08)', fill: true, borderWidth: 2.2 }, { label: 'En retard', data: sLate, borderColor: '#EF4444', borderDash: [5, 4], borderWidth: 2, pointRadius: 2 }] },
+      options: { interaction: { mode: 'index', intersect: false }, scales: { x: G.ax(), y: G.ay() } } });
+    G.mk('ch-a-jours', { type: 'bar', data: { labels: lt.map(function (x) { return x.client; }), datasets: [{ label: 'Jours à l\'atelier', data: lt.map(function (x) { return x.jours; }), backgroundColor: lt.map(function (x) { return x.alerte === 'En retard' ? '#EF4444' : '#0EA5E9'; }), maxBarThickness: 12 }, { label: 'Délai visé', data: lt.map(function (x) { return x.vise; }), backgroundColor: '#CBD5E1', maxBarThickness: 12 }] },
+      options: { indexAxis: 'y', interaction: { mode: 'index', intersect: false }, scales: { x: G.ay({ ticks: { color: '#94A3B8', maxTicksLimit: 5, callback: function (v) { return v + ' j'; } } }), y: { grid: { display: false }, border: { display: false }, ticks: { color: '#334155', autoSkip: false, font: { size: 11 }, callback: function (v) { var t = this.getLabelForValue(v); return t.length > 18 ? t.slice(0, 17) + '\u2026' : t; } } } },
+        plugins: { tooltip: { callbacks: { title: function (c) { var x = lt[c[0].dataIndex]; return x.client + ', ' + x.modele; }, label: function (c) { return ' ' + c.dataset.label + ' : ' + c.parsed.x + ' j'; } } } } } });
   }
   function alertPill(x) {
     if (!x.alerte || x.statut === 'Remise') return '';
@@ -292,7 +365,7 @@
     $('dr-b').className = 'dr-b';
     $('dr-b').innerHTML = '<div class="dh"><span class="img"><img src="' + photo(x) + '" alt="' + esc(x.mat) + '"></span><div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill n">' + ETQ[x.statut] + '</span>' + alertPill(x) + '</div><h3>' + esc(x.client) + '</h3><p>' + esc(x.mat) + ', ' + esc(x.modele) + '</p></div></div>' +
       '<ol class="prog">' + PROG.map(function (e, i) { return '<li class="' + (i < idx ? 'done' : i === idx ? 'cur' : '') + '"><i></i>' + e[1] + '</li>'; }).join('') + '</ol>' +
-      '<dl class="props"><dt>Panne</dt><dd>' + esc(x.panne) + '</dd><dt>À l\'atelier</dt><dd class="' + (x.alerte === 'En retard' ? 'red' : '') + '">' + x.jours + ' j pour ' + x.vise + ' j visés</dd><dt>Devis</dt><dd>' + fcfa(x.montant) + '</dd><dt>Technicien</dt><dd>' + avatar(x.tech) + esc(x.tech) + '</dd><dt>N° de série</dt><dd>' + esc(x.serie) + '</dd></dl>' +
+      '<dl class="props"><dt>Panne</dt><dd>' + esc(x.panne) + '</dd><dt>À l\'atelier</dt><dd class="' + (x.alerte === 'En retard' ? 'red' : '') + '">' + x.jours + ' j pour ' + x.vise + ' j visés</dd><dt>Devis</dt><dd>' + (x.devis_le ? 'envoyé le ' + dd(x.devis_le) + (x.accord ? ', accepté le ' + dd(x.accord) : ', accord attendu') : 'à établir') + '</dd><dt>Technicien</dt><dd>' + avatar(x.tech) + esc(x.tech) + '</dd><dt>N° de série</dt><dd>' + esc(x.serie) + '</dd></dl>' +
       '<div class="tl"><h4>' + ico('history') + 'Suivi</h4>' + jal.map(function (j) { return '<div class="e' + (j[1] ? ' ok' : '') + '"><span>' + j[0] + '</span><b>' + (j[1] ? dd(j[1]) : 'à venir') + '</b></div>'; }).join('') + '</div>' +
       (x.msg ? '<div class="wa"><h4>' + ico('message-circle') + 'Message WhatsApp envoyé au client à cette étape</h4><div class="wab"><p>' + esc(x.msg) + '</p></div></div>' : '');
     openDrawer();
@@ -329,6 +402,7 @@
   }
   function render() {
     badges();
+    if (window.SG) window.SG.drawFilters(vue, render);
     if (vue === 'messages') renderMessages();
     if (vue === 'atelier') renderAtelier();
     if (vue === 'envoi' && window.SacriEnvoi) window.SacriEnvoi.render(soc);
@@ -353,7 +427,7 @@
   $('scrim').addEventListener('click', closeDrawer);
   $('dr-x').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeDrawer(); closeMenu(); } });
-  $('f-q').addEventListener('input', function () { fq = this.value.trim(); showAll = !!fq; renderRows(dem()); });
+  $('f-q').addEventListener('input', function () { fq = this.value.trim(); showAll = !!fq; renderRows(demF()); });
   var lastMob = window.innerWidth <= 900;
   window.addEventListener('resize', function () { var m = window.innerWidth <= 900; if (m !== lastMob) { lastMob = m; render(); } });
 
@@ -367,5 +441,5 @@
     setVue(q.get('vue') || location.hash.slice(1) || 'messages');
   };
   if (window.SACRI_DATA) boot(window.SACRI_DATA);
-  else fetch('data/donnees.json?v=20261125a').then(function (r) { return r.json(); }).then(boot);
+  else fetch('data/donnees.json?v=20261125c').then(function (r) { return r.json(); }).then(boot);
 })();

@@ -87,6 +87,8 @@
   // ---------- outils ----------
   function $(id) { return document.getElementById(id); }
   function ico(k, c) { return window.ico(k, c); }
+  function hcol(n) { var h = 0; n = String(n || ''); for (var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; return 'c' + (h % 6); }
+  function initials(n) { var p = String(n || '').replace(/^(M\.|Mme|Mlle)\s+/, '').trim().split(/\s+/); return esc(((p[0] || '')[0] || '') + ((p[1] || '')[0] || '')).toUpperCase(); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var nf0 = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
   var nf1 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -108,7 +110,32 @@
   function pl(n, s, p) { return n0(n) + ' ' + (n > 1 ? (p || s + 's') : s); }
   function median(a) { if (!a.length) return null; var s = a.slice().sort(function (x, y) { return x - y; }), m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
   function mois(j) { return n1(j / 30.44).replace(/,0$/, '') + ' mois'; }
-  function kc(o) { return '<div class="kc' + (o.cls ? ' ' + o.cls : '') + '"><p class="l">' + ico(o.ic) + o.l + '</p><div class="vr"><p class="v">' + o.v + (o.u ? '<small>' + o.u + '</small>' : '') + '</p></div><p class="s">' + o.s + '</p></div>'; }
+  function kc(o) { return '<div class="kc' + (o.cls ? ' ' + o.cls : '') + '"><p class="l">' + ico(o.ic) + o.l + '</p><div class="vr"><p class="v">' + o.v + (o.u ? '<small>' + o.u + '</small>' : '') + '</p>' + (o.sp || '') + '</div><p class="s">' + o.s + '</p></div>'; }
+  function spark(vals, color) {
+    var w = 96, h = 38, p = 3, mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals);
+    if (mx === mn) { mx += 1; mn -= 1; }
+    var pts = vals.map(function (v, i) { return [p + i * (w - 2 * p) / (vals.length - 1), h - p - (v - mn) / (mx - mn) * (h - 2 * p)]; });
+    var d = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
+    var a = d + ' L' + pts[pts.length - 1][0].toFixed(1) + ' ' + h + ' L' + pts[0][0].toFixed(1) + ' ' + h + ' Z';
+    var l = pts[pts.length - 1], gid = 'h' + Math.random().toString(36).slice(2, 7);
+    return '<svg class="sp" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + color + '" stop-opacity=".18"/><stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs><path d="' + a + '" fill="url(#' + gid + ')"/><path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="' + l[0].toFixed(1) + '" cy="' + l[1].toFixed(1) + '" r="2.6" fill="' + color + '"/></svg>';
+  }
+  function delta(cur, prev, upGood, lbl, fmt) {
+    if (prev == null || cur == null) return '';
+    var df = cur - prev;
+    if (Math.abs(df) < 1e-9) return '<span class="dl nt">= stable</span><span>' + lbl + '</span>';
+    var good = upGood == null ? null : (df > 0) === upGood;
+    return '<span class="dl ' + (good == null ? 'nt' : good ? 'up' : 'dn') + '">' + (df > 0 ? '\u25b2 ' : '\u25bc ') + (fmt ? fmt(Math.abs(df)) : n0(Math.abs(df))) + '</span><span>' + lbl + '</span>';
+  }
+  // jours du 6 au 19 novembre, pour les courbes
+  function jours14() { var out = [], e = dt(REF.slice(0, 10)); for (var i = 13; i >= 0; i--) out.push(new Date(e.getTime() - i * 864e5)); return out; }
+  function finJour(d) { return new Date(d.getTime() + 864e5 - 1).toISOString ? new Date(d.getTime() + 864e5 - 60000) : d; }
+  function etatAt(r, t) {
+    if (dt(r.recue) > t) return null;
+    if (r.fin && dt(r.fin) <= t) return 'close';
+    if (!(r.rep && dt(r.rep) <= t)) return (t - dt(r.recue)) / 36e5 > 48 ? 'rouge' : 'attente';
+    return 'cours';
+  }
   function photo(m) {
     if (m.modele === 'STIHL MS 661') return 'assets/img/tronconneuse-ms661.jpg';
     if (m.mat === 'Tronçonneuse') return 'assets/img/tronconneuse.jpg';
@@ -135,7 +162,19 @@
   var ETL = { rouge: ['Plus de 48 h sans réponse', 'r'], attente: ['Sans réponse', 'a'], cours: ['En cours', 'b'], close: ['Résolue', 'g'] };
   function pill(r) { var e = ETL[etat(r)]; return '<span class="pill ' + e[1] + '"><i class="d"></i>' + e[0] + '</span>'; }
   var fRe = 'ouvertes';
-  function recl() { return RECL.filter(function (r) { return SOC === 'Groupe' || r.soc === SOC; }); }
+  function reclS() { return RECL.filter(function (r) { return SOC === 'Groupe' || r.soc === SOC; }); }
+  function recl() {
+    var F = window.SF || { per: 'tout', canal: 'tous', statut: 'tous' }, t0 = window.SG ? window.SG.since(REF) : -Infinity;
+    return reclS().filter(function (r) {
+      if (dt(r.recue).getTime() < t0) return false;
+      if (F.canal !== 'tous' && r.canal !== F.canal) return false;
+      var e = etat(r);
+      if (F.statut === 'atraiter' && (e === 'close' || e === 'cours')) return false;
+      if (F.statut === 'retard' && e !== 'rouge') return false;
+      if (F.statut === 'traites' && e !== 'close') return false;
+      return true;
+    });
+  }
   function ouvertes(list) { return list.filter(function (r) { return !r.fin; }); }
 
   function renderRecl() {
@@ -145,11 +184,17 @@
       (red.length ? ', dont <span class="r">' + pl(red.length, 'sans réponse depuis plus de 48 h', 'sans réponse depuis plus de 48 h') + '</span>' : ', aucune sans réponse au-delà de 48 h') +
       '. Chaque nouvelle réclamation prévient la direction ; au-delà de 48 h sans réponse, elle passe en rouge et l\'alerte est prête à partir.';
     var rep = all.filter(function (r) { return r.rep; }), mrep = median(rep.map(function (r) { return hours(r.recue, r.rep); }));
-    var h = kc({ ic: 'flag', l: 'Réclamations ouvertes', v: n0(op.length), cls: 'key', s: pl(all.length, 'réclamation reçue', 'réclamations reçues') + ' depuis le 6 novembre' });
-    h += kc({ ic: 'siren', l: 'Plus de 48 h sans réponse', v: red.length ? n0(red.length) : 'Aucune', cls: red.length ? 'bad' : '', s: red.length ? '<span>la plus ancienne : <b>' + esc(red.slice().sort(function (a, b) { return dt(a.recue) - dt(b.recue); })[0].client) + '</b>, ' + age(hours(red.slice().sort(function (a, b) { return dt(a.recue) - dt(b.recue); })[0].recue, REF)) + '</span>' : 'toutes ont une réponse dans les 48 h' });
-    h += kc({ ic: 'hourglass', l: 'Sans réponse, moins de 48 h', v: wait.length ? n0(wait.length) : 'Aucune', s: wait.length ? 'à traiter avant de passer en rouge' : 'rien en attente' });
-    h += kc({ ic: 'timer', l: 'Première réponse, délai médian', v: mrep == null ? 'Aucune' : mrep < 24 ? n1(mrep).replace(/,0$/, '') : n1(mrep / 24).replace(/,0$/, ''), u: mrep == null ? '' : mrep < 24 ? 'h' : 'j', s: 'sur ' + pl(rep.length, 'réclamation répondue', 'réclamations répondues') });
+    var J = jours14(), base = reclS().filter(function (r) { return (!window.SF || window.SF.canal === 'tous' || r.canal === window.SF.canal); });
+    var sOp = J.map(function (j) { var t = finJour(j); return base.filter(function (r) { var e = etatAt(r, t); return e && e !== 'close'; }).length; });
+    var sRed = J.map(function (j) { var t = finJour(j); return base.filter(function (r) { return etatAt(r, t) === 'rouge'; }).length; });
+    var sW = J.map(function (j) { var t = finJour(j); return base.filter(function (r) { return etatAt(r, t) === 'attente'; }).length; });
+    var sMed = J.map(function (j) { var t = finJour(j), v = base.filter(function (r) { return r.rep && dt(r.rep) <= t; }).map(function (r) { return hours(r.recue, r.rep); }); return v.length ? median(v) : 0; });
+    var h = kc({ ic: 'flag', l: 'Réclamations ouvertes', v: n0(op.length), cls: 'key', sp: spark(sOp, '#E95B0F'), s: delta(sOp[13], sOp[6], false, 'en 7 jours') + '<span>' + pl(all.length, 'reçue', 'reçues') + ' ' + (window.SG ? window.SG.perLbl('depuis le 6 novembre') : 'depuis le 6 novembre') + '</span>' });
+    h += kc({ ic: 'siren', l: 'Plus de 48 h sans réponse', v: red.length ? n0(red.length) : 'Aucune', cls: red.length ? 'bad' : '', sp: spark(sRed, '#EF4444'), s: red.length ? '<span>la plus ancienne : <b>' + esc(red.slice().sort(function (a, b) { return dt(a.recue) - dt(b.recue); })[0].client) + '</b>, ' + age(hours(red.slice().sort(function (a, b) { return dt(a.recue) - dt(b.recue); })[0].recue, REF)) + '</span>' : 'toutes ont une réponse dans les 48 h' });
+    h += kc({ ic: 'hourglass', l: 'Sans réponse, moins de 48 h', v: wait.length ? n0(wait.length) : 'Aucune', sp: spark(sW, '#F59E0B'), s: wait.length ? 'à traiter avant de passer en rouge' : 'rien en attente' });
+    h += kc({ ic: 'timer', l: 'Première réponse, délai médian', v: mrep == null ? 'Aucune' : mrep < 24 ? n1(mrep).replace(/,0$/, '') : n1(mrep / 24).replace(/,0$/, ''), u: mrep == null ? '' : mrep < 24 ? 'h' : 'j', sp: spark(sMed, '#0EA5E9'), s: 'sur ' + pl(rep.length, 'réclamation répondue', 'réclamations répondues') });
     $('rc-kpis').innerHTML = h;
+    rcGraphs(all, op, red);
     renderEsc(all);
     renderFrise();
 
@@ -172,19 +217,57 @@
     var rank = { rouge: 0, attente: 1, cours: 2, close: 3 };
     var L = all.filter(function (r) { var e = etat(r); return fRe === 'toutes' || (fRe === 'ouvertes' && e !== 'close') || (fRe === 'rouge' && e === 'rouge') || (fRe === 'closes' && e === 'close'); })
       .sort(function (a, b) { return (rank[etat(a)] - rank[etat(b)]) || (dt(a.recue) - dt(b.recue)); });
-    $('rc-rows').innerHTML = L.length ? L.map(function (r) {
-      var e = etat(r), hAge = hours(r.recue, r.fin || REF);
-      var del = e === 'close' ? 'résolue en ' + age(hAge) : e === 'cours' ? 'reçue il y a ' + age(hAge) + ', répondue en ' + age(hours(r.recue, r.rep)) : 'reçue il y a ' + age(hAge) + ', sans réponse';
-      return '<div class="rr ' + e + '" data-n="' + r.n + '">' +
-        '<div class="c1"><span class="soc">' + esc(r.soc) + '</span><p class="cl">' + esc(r.client) + '</p><p class="q">' + esc(r.quoi) + '</p></div>' +
-        '<div class="c2"><p class="lb">Machine</p><p class="mv">' + esc(r.machine) + '</p>' + (r.serie ? '<button class="sl" data-s="' + esc(r.serie) + '">N° ' + esc(r.serie) + ico('arrow-up-right') + '</button>' : '<p class="mt">sans numéro de série</p>') + '</div>' +
-        '<div class="c3"><p class="lb">Reçue le</p><p class="mv">' + dd(r.recue) + ' à ' + hh(r.recue) + '</p><p class="mt">' + esc(r.canal) + '</p></div>' +
-        '<div class="c4"><p class="lb">Délai depuis réception</p><p class="mv dl' + (e === 'rouge' ? ' red' : '') + '">' + age(hAge) + '</p><p class="mt">' + del.replace(/^[^,]*, ?/, '') + '</p></div>' +
-        '<div class="c5">' + pill(r) + escLine(r) + (e !== 'close' ? '<button class="bt al' + (e === 'rouge' ? ' pri' : '') + '" data-n="' + r.n + '">' + ico('siren') + 'Alerte direction</button>' : '<button class="bt al" data-n="' + r.n + '">' + ico('file-text') + 'Détail</button>') + '</div>' +
-        '</div>';
-    }).join('') : '<p class="empty">Aucune réclamation dans ce filtre' + (SOC === 'Groupe' ? '' : ' pour ' + esc(SOC)) + '.</p>';
-    $('rc-rows').querySelectorAll('.al').forEach(function (b) { b.addEventListener('click', function () { alerte([RECL.filter(function (r) { return r.n === b.getAttribute('data-n'); })[0]]); }); });
-    $('rc-rows').querySelectorAll('.sl').forEach(function (b) { b.addEventListener('click', function () { openFiche(b.getAttribute('data-s')); }); });
+    var G = window.SG, AC = { rouge: '#EF4444', attente: '#F59E0B', cours: '#0EA5E9', close: '#10B981' };
+    G.table('rc-rows', [
+      { k: 'client', l: 'Client et réclamation', fmt: function (r) { return '<div class="tc-cl"><span class="av ' + hcol(r.client) + '">' + initials(r.client) + '</span><span><b>' + esc(r.client) + '</b><small>' + esc(r.quoi) + '</small><span class="soc">' + esc(r.soc) + '</span></span></div>'; } },
+      { k: 'machine', l: 'Machine', fmt: function (r) { return '<span class="tc-m">' + esc(r.machine) + '</span>' + (r.serie ? '<button class="sl" data-s="' + esc(r.serie) + '">N° ' + esc(r.serie) + ico('arrow-up-right') + '</button>' : '<small class="mt">sans numéro de série</small>'); } },
+      { k: 'recue', l: 'Reçue le', sort: function (r) { return dt(r.recue).getTime(); }, fmt: function (r) { return '<b>' + dd(r.recue) + ' à ' + hh(r.recue) + '</b><small class="mt ch-ic">' + ico({ 'WhatsApp': 'message-circle', 'E-mail': 'mail', 'Téléphone': 'phone', 'Comptoir': 'store' }[r.canal]) + esc(r.canal) + '</small>'; } },
+      { k: 'age', l: 'Délai depuis réception', num: true, sort: function (r) { return hours(r.recue, r.fin || REF); }, fmt: function (r) {
+        var e = etat(r), hA = hours(r.recue, r.fin || REF);
+        var sub = e === 'close' ? 'résolue' : e === 'cours' ? 'répondue en ' + age(hours(r.recue, r.rep)) : 'sans réponse';
+        return G.cellBar(Math.min(hA, 96), 96, AC[e], '<b class="' + (e === 'rouge' ? 'red' : '') + '">' + age(hA) + '</b>') + '<small class="mt">' + sub + '</small>'; } },
+      { k: 'etat', l: 'Statut', sort: function (r) { return rank[etat(r)]; }, fmt: function (r) { return pill(r) + escLine(r); } },
+      { k: 'act', l: 'Action', sort: function (r) { return rank[etat(r)]; }, fmt: function (r) { var e = etat(r); return e !== 'close' ? '<button class="bt al' + (e === 'rouge' ? ' pri' : '') + '" data-n="' + r.n + '">' + ico('siren') + 'Alerte direction</button>' : '<button class="bt al" data-n="' + r.n + '">' + ico('file-text') + 'Détail</button>'; } }
+    ], L, { sortKey: 'etat', dir: 1, ph: 'Rechercher un client, une machine, un n° de série', empty: 'Aucune réclamation dans ce filtre' + (SOC === 'Groupe' ? '' : ' pour ' + esc(SOC)) + '.',
+      text: function (r) { return [r.client, r.quoi, r.machine, r.serie, r.soc, r.canal, r.n].join(' '); }, rowAttr: function (r) { return 'class="rt-' + etat(r) + '"'; },
+      bind: function (box) {
+        box.querySelectorAll('.al').forEach(function (b) { b.addEventListener('click', function () { alerte([RECL.filter(function (r) { return r.n === b.getAttribute('data-n'); })[0]]); }); });
+        box.querySelectorAll('.sl').forEach(function (b) { b.addEventListener('click', function () { openFiche(b.getAttribute('data-s')); }); });
+      } });
+  }
+
+  // ---------- graphes des réclamations ----------
+  var CAUSEC = { 'Panne qui revient après réparation': '#E95B0F', 'Délai dépassé ou client sans nouvelles': '#0EA5E9', 'Garantie ou devis contesté': '#8B5CF6', 'Erreur de livraison ou de référence': '#F59E0B', 'Défaut de pose sur chantier': '#10B981' };
+  var SEM = [['2026-11-02', 'Sem. du 2 nov.'], ['2026-11-09', 'Sem. du 9 nov.'], ['2026-11-16', 'Sem. du 16 nov.']];
+  function rcGraphs(all, op, red) {
+    var G = window.SG, box = $('rc-graphs');
+    if (!G) return;
+    if (!all.length) { box.innerHTML = '<div class="nodata card">Aucune réclamation pour ces filtres.</div>'; return; }
+    var socs = SOCS.filter(function (k) { return all.some(function (r) { return r.soc === k; }); });
+    var cz = {}; all.forEach(function (r) { cz[r.cause] = (cz[r.cause] || 0) + 1; });
+    var cks = Object.keys(cz).sort(function (a, b) { return cz[b] - cz[a]; });
+    var ech = all.filter(function (r) { return r.rep || hours(r.recue, REF) > 48; }), s48 = ech.filter(function (r) { return r.rep && hours(r.recue, r.rep) <= 48; }).length;
+    var p48 = ech.length ? Math.round(s48 / ech.length * 100) : null;
+    var chrono = all.slice().sort(function (a, b) { return dt(a.recue) - dt(b.recue); });
+    box.innerHTML = G.card('ch-rc-sem', 'Réclamations reçues par semaine', 'par société', 230, { head: G.legend(socs.map(function (k) { return [k, G.SOCC[k]]; })) }, 'w2') +
+      G.card('ch-rc-cause', 'Causes des réclamations', pl(all.length, 'réclamation'), 230, { center: '<b>' + n0(all.length) + '</b><span>réclamations</span>', foot: G.legend(cks.map(function (k) { return [k, CAUSEC[k] || '#64748B', n0(cz[k])]; })) }) +
+      G.card('ch-rc-g48', 'Réponse en moins de 48 h', ech.length ? 'sur ' + pl(ech.length, 'réclamation échue', 'réclamations échues') : 'aucune réclamation échue', 150, { center: '<b>' + (p48 == null ? '–' : n0(p48) + '\u00a0%') + '</b><span>' + n0(s48) + ' sur ' + n0(ech.length) + '</span>', foot: '<p class="gc-f">' + (red.length ? '<span class="r">' + pl(red.length, 'réclamation', 'réclamations') + ' au-delà de 48 h</span>' : 'aucune au-delà de 48 h') + (all.length - ech.length ? ' ; ' + n0(all.length - ech.length) + ' encore dans le délai' : '') + '</p>' }, 'gauge') +
+      G.card('ch-rc-delai', 'Délai de première réponse, réclamation par réclamation', 'en heures ; en rouge, sans réponse à ce jour', 220, { head: G.legend([['Répondue', '#0EA5E9'], ['Sans réponse', '#EF4444'], ['Seuil 48 h', '#94A3B8']]) }, 'w2') +
+      G.card('ch-rc-soc', 'Par société', 'ouvertes et résolues', 220, { head: G.legend([['Plus de 48 h', '#EF4444'], ['Ouvertes', '#E95B0F'], ['Résolues', '#10B981']]) }, 'w2');
+    G.mk('ch-rc-sem', { type: 'bar', data: { labels: SEM.map(function (w) { return w[1]; }), datasets: socs.map(function (k) { return { label: k, data: SEM.map(function (w, i) { var a = dt(w[0]), b = new Date(a.getTime() + 7 * 864e5); return all.filter(function (r) { return r.soc === k && dt(r.recue) >= a && dt(r.recue) < b; }).length; }), backgroundColor: G.SOCC[k], stack: 's', maxBarThickness: 64 }; }) },
+      options: { interaction: { mode: 'index', intersect: false }, scales: { x: G.ax({ stacked: true }), y: G.ay({ stacked: true }) }, plugins: { tooltip: { filter: function (i) { return i.parsed.y > 0; }, callbacks: { footer: function (c) { return 'Total : ' + c.reduce(function (s, x) { return s + x.parsed.y; }, 0); } } } } } });
+    G.donut('ch-rc-cause', cks, cks.map(function (k) { return cz[k]; }), cks.map(function (k) { return CAUSEC[k] || '#64748B'; }), 'réclamations');
+    G.gauge('ch-rc-g48', s48, ech.length || 1, p48 == null ? '#CBD5E1' : p48 >= 90 ? '#10B981' : p48 >= 70 ? '#F59E0B' : '#EF4444');
+    var vals = chrono.map(function (r) { return +(r.rep ? hours(r.recue, r.rep) : hours(r.recue, r.fin || REF)).toFixed(1); });
+    G.mk('ch-rc-delai', { type: 'line', data: { labels: chrono.map(function (r) { return dd(r.recue); }), datasets: [
+      { label: 'Première réponse', data: vals, borderColor: '#0EA5E9', backgroundColor: 'rgba(14,165,233,.08)', fill: true, borderWidth: 2, pointRadius: 4, pointBackgroundColor: chrono.map(function (r) { return r.rep ? '#0EA5E9' : '#EF4444'; }), pointBorderColor: '#fff', pointBorderWidth: 1.5 },
+      { label: 'Seuil 48 h', data: chrono.map(function () { return 48; }), borderColor: '#94A3B8', borderDash: [6, 5], borderWidth: 1.5, pointRadius: 0, fill: false }] },
+      options: { interaction: { mode: 'index', intersect: false }, scales: { x: G.ax({ ticks: { color: '#94A3B8', autoSkip: true, maxTicksLimit: 9, maxRotation: 0 } }), y: G.ay({ ticks: { color: '#94A3B8', maxTicksLimit: 5, callback: function (v) { return v + ' h'; } } }) },
+        plugins: { tooltip: { filter: function (i) { return i.datasetIndex === 0; }, callbacks: { title: function (c) { var r = chrono[c[0].dataIndex]; return r.client + ' (' + r.soc + ')'; }, label: function (c) { var r = chrono[c.dataIndex]; return r.rep ? ' Première réponse en ' + age(hours(r.recue, r.rep)) : ' Sans réponse depuis ' + age(hours(r.recue, REF)); } } } } } });
+    var sr = socs.map(function (k) { var l = all.filter(function (r) { return r.soc === k; }); return [l.filter(function (r) { return etat(r) === 'rouge'; }).length, l.filter(function (r) { var e = etat(r); return e === 'attente' || e === 'cours'; }).length, l.filter(function (r) { return etat(r) === 'close'; }).length]; });
+    G.mk('ch-rc-soc', { type: 'bar', data: { labels: socs, datasets: [['Plus de 48 h', '#EF4444', 0], ['Ouvertes', '#E95B0F', 1], ['Résolues', '#10B981', 2]].map(function (d) { return { label: d[0], data: sr.map(function (x) { return x[d[2]]; }), backgroundColor: d[1], stack: 's', maxBarThickness: 18 }; }) },
+      options: { indexAxis: 'y', interaction: { mode: 'index', intersect: false }, scales: { x: G.ay({ stacked: true }), y: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: '#334155', autoSkip: false, font: { size: 11.5 } } } }, plugins: { tooltip: { filter: function (i) { return i.parsed.x > 0; } } },
+        onClick: function (e, el) { if (el && el.length) window.SacriSetSoc(socs[el[0].index]); } } });
   }
 
   // ---------- message d'alerte vers la direction ----------
@@ -246,21 +329,26 @@
     var med = median(back.map(first));
     if (!M.length) {
       $('rt-lede').innerHTML = esc(SOC) + ' ne vend pas de machine suivie par numéro de série : ' + (SOC === 'DEFI' ? 'ses ouvrages sont réalisés sur devis.' : 'elle fournit des pièces de transmission.') + ' Les retours à l\'atelier concernent SACRI, PST-CI et SAFIR.';
-      ['rt-kpis', 'rt-rec', 'rt-med-m', 'rt-med-s', 'rt-top'].forEach(function (id) { $(id).innerHTML = ''; });
+      ['rt-kpis', 'rt-rec', 'rt-med-m', 'rt-med-s', 'rt-top', 'rt-graphs', 'rt-table'].forEach(function (id) { $(id).innerHTML = ''; });
       $('rt-body').hidden = true; $('rt-none').hidden = false;
       $('rt-none').innerHTML = '<div class="nodata">Aucune machine suivie pour ' + esc(SOC) + '. Choisissez SACRI, PST-CI, SAFIR ou toutes les sociétés.</div>';
       renderSearch(); return;
     }
     $('rt-body').hidden = false; $('rt-none').hidden = true;
     $('rt-lede').innerHTML = 'Aucune machine n\'entre à l\'atelier sans son numéro de série : chaque retour se rattache à la vente. <b>' + pl(M.length, 'machine vendue', 'machines vendues') + '</b> suivies' + (SOC === 'Groupe' ? '' : ' chez ' + esc(SOC)) + ', <b>' + pl(back.length, 'revenue', 'revenues') + '</b> au moins une fois, dont <span class="r">' + n0(rec.length) + ' deux fois ou plus</span>.';
-    var h = kc({ ic: 'package', l: 'Machines suivies', v: n0(M.length), s: 'vendues depuis juillet 2025, par numéro de série' });
-    h += kc({ ic: 'rotate-ccw', l: 'Revenues à l\'atelier', v: n0(back.length), cls: 'key', s: pl(nret, 'passage', 'passages') + ' à l\'atelier au total' });
-    h += kc({ ic: 'triangle-alert', l: 'Revenues 2 fois ou plus', v: rec.length ? n0(rec.length) : 'Aucune', cls: rec.length ? 'bad' : '', s: rec.length ? 'à examiner : panne répétée ou usage' : 'aucune machine récidiviste' });
+    var MOx = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11'];
+    function cumAt(mo, f) { return M.filter(function (m) { return f(m.ret.filter(function (r) { return r.d.slice(0, 7) <= mo; }).length, m, mo); }).length; }
+    var sV = MOx.map(function (mo) { return M.filter(function (m) { return m.vente.slice(0, 7) <= mo; }).length; });
+    var sB = MOx.map(function (mo) { return cumAt(mo, function (n) { return n >= 1; }); }), sR = MOx.map(function (mo) { return cumAt(mo, function (n) { return n >= 2; }); });
+    var h = kc({ ic: 'package', l: 'Machines suivies', v: n0(M.length), sp: spark(sV, '#64748B'), s: delta(sV[7], sV[6], null, 'depuis octobre') + '<span>par numéro de série</span>' });
+    h += kc({ ic: 'rotate-ccw', l: 'Revenues à l\'atelier', v: n0(back.length), cls: 'key', sp: spark(sB, '#E95B0F'), s: delta(sB[7], sB[6], false, 'depuis octobre') + '<span>' + pl(nret, 'passage', 'passages') + ' au total</span>' });
+    h += kc({ ic: 'triangle-alert', l: 'Revenues 2 fois ou plus', v: rec.length ? n0(rec.length) : 'Aucune', cls: rec.length ? 'bad' : '', sp: spark(sR, '#EF4444'), s: rec.length ? 'à examiner : panne répétée ou usage' : 'aucune machine récidiviste' });
     h += kc({ ic: 'calendar-clock', l: 'Vente au premier retour, médiane', v: med == null ? 'Aucun' : n0(med), u: med == null ? '' : 'j', s: med == null ? 'aucun retour' : 'soit ' + mois(med) + ' après la vente' });
     $('rt-kpis').innerHTML = h;
 
     // machines revenues 2 fois ou plus
     var rs = rec.slice().sort(function (a, b) { return (b.ret.length - a.ret.length) || (first(a) - first(b)); });
+    rtGraphs(M, back, rec);
     $('rt-rec-n').textContent = rs.length ? n0(rs.length) : '';
     $('rt-rec').innerHTML = rs.length ? rs.map(function (m) {
       var same = m.ret.length > 1 && m.ret.some(function (r, i) { return m.ret.some(function (q, j) { return j !== i && q.motif === r.motif; }); });
@@ -289,6 +377,45 @@
       return '<div class="tp"><span class="rk">' + (i + 1) + '</span>' + thumb(x.m, 'sm') + '<span class="tk"><b>' + esc(x.k) + '</b><small>' + esc(x.soc) + ', ' + n0(x.b) + ' sur ' + pl(x.v, 'machine vendue', 'machines vendues') + ' revenue' + (x.b > 1 ? 's' : '') + '</small></span><span class="bar"><i style="width:' + (x.r / tmx * 100) + '%"></i></span><span class="tv"><b>' + n0(x.r) + '</b> retours</span></div>';
     }).join('');
     renderSearch();
+  }
+  function rtGraphs(M, back, rec) {
+    var G = window.SG; if (!G) return;
+    var MO = ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11'];
+    var ML = MO.map(function (m) { return MC[+m.slice(5) - 1].replace('.', ''); });
+    var gm = {}; M.forEach(function (m) { var x = gm[m.modele] = gm[m.modele] || { k: m.modele, mat: m.mat, n: 0, vals: MO.map(function () { return 0; }) }; x.n++; m.ret.forEach(function (r) { var i = MO.indexOf(r.d.slice(0, 7)); if (i >= 0) x.vals[i]++; }); });
+    var rows = Object.keys(gm).map(function (k) { return gm[k]; }).filter(function (x) { return x.vals.some(function (v) { return v; }); }).sort(function (a, b) { return b.vals.reduce(function (s, v) { return s + v; }, 0) - a.vals.reduce(function (s, v) { return s + v; }, 0); });
+    var nret = M.reduce(function (s, m) { return s + m.ret.length; }, 0);
+    var mats = {}; M.forEach(function (m) { m.ret.forEach(function () { mats[m.mat] = (mats[m.mat] || 0) + 1; }); });
+    var mk = Object.keys(mats).sort(function (a, b) { return mats[b] - mats[a]; });
+    var BK = [['moins de 3 mois', 0, 91], ['3 à 6 mois', 91, 183], ['6 à 9 mois', 183, 274], ['9 mois et plus', 274, 1e9]];
+    var bk = BK.map(function (b) { return back.filter(function (m) { var f = first(m); return f >= b[1] && f < b[2]; }).length; });
+    var parM = MO.map(function (mo) { return M.reduce(function (s, m) { return s + m.ret.filter(function (r) { return r.d.slice(0, 7) === mo; }).length; }, 0); });
+    var cum = []; parM.reduce(function (a, v, i) { cum[i] = a + v; return a + v; }, 0);
+    var pr = M.length ? Math.round(back.length / M.length * 100) : 0;
+    $('rt-graphs').innerHTML = '<div class="gc card w3"><div class="gc-h"><div><p class="gc-t">Carte de chaleur des retours par modèle</p><p class="gc-s">passages à l\'atelier par mois, de février à novembre 2026 ; survolez une case</p></div></div>' + G.heat(rows.map(function (r) { return { k: r.k, sub: pl(r.n, 'machine vendue', 'machines vendues'), vals: r.vals }; }), ML, { unit: 'retour(s)' }) + '</div>' +
+      G.card('ch-rt-mois', 'Retours par mois', 'passages à l\'atelier et cumul', 220, { head: G.legend([['Retours du mois', '#E95B0F'], ['Cumul', '#0EA5E9']]) }, 'w2') +
+      G.card('ch-rt-mat', 'Retours par matériel', pl(nret, 'passage'), 220, { center: '<b>' + n0(nret) + '</b><span>passages</span>', foot: G.legend(mk.map(function (k, i) { return [k, G.PAL[i % 6], n0(mats[k])]; })) }) +
+      G.card('ch-rt-g', 'Machines revenues', 'sur ' + pl(M.length, 'machine suivie', 'machines suivies'), 150, { center: '<b>' + n0(pr) + '\u00a0%</b><span>' + n0(back.length) + ' sur ' + n0(M.length) + '</span>', foot: '<p class="gc-f"><span class="r">' + pl(rec.length, 'machine', 'machines') + ' 2 fois ou plus</span></p>' }, 'gauge') +
+      G.card('ch-rt-bk', 'Délai entre la vente et le premier retour', pl(back.length, 'machine revenue', 'machines revenues'), 200, null, 'w2') +
+      G.card('ch-rt-soc', 'Machines suivies par société', 'revenues ou non', 200, { head: G.legend([['2 fois ou plus', '#EF4444'], ['1 fois', '#F59E0B'], ['Jamais', '#CBD5E1']]) }, 'w2');
+    G.mk('ch-rt-mois', { type: 'bar', data: { labels: ML, datasets: [{ type: 'bar', label: 'Retours du mois', data: parM, backgroundColor: '#E95B0F', maxBarThickness: 30, yAxisID: 'y' }, { type: 'line', label: 'Cumul', data: cum, borderColor: '#0EA5E9', borderWidth: 2, pointRadius: 2.5, yAxisID: 'y2' }] },
+      options: { interaction: { mode: 'index', intersect: false }, scales: { x: G.ax(), y: G.ay(), y2: G.ay({ position: 'right', grid: { display: false } }) } } });
+    G.donut('ch-rt-mat', mk, mk.map(function (k) { return mats[k]; }), mk.map(function (k, i) { return G.PAL[i % 6]; }), 'passages');
+    G.gauge('ch-rt-g', back.length, M.length || 1, '#F59E0B');
+    G.mk('ch-rt-bk', { type: 'bar', data: { labels: BK.map(function (b) { return b[0]; }), datasets: [{ label: 'Machines', data: bk, backgroundColor: ['#EF4444', '#F59E0B', '#0EA5E9', '#10B981'], maxBarThickness: 56 }] }, options: { scales: { x: G.ax(), y: G.ay() } } });
+    var ss = SOCS.filter(function (k) { return M.some(function (m) { return m.soc === k; }); });
+    G.mk('ch-rt-soc', { type: 'bar', data: { labels: ss, datasets: [['2 fois ou plus', '#EF4444', function (m) { return m.ret.length >= 2; }], ['1 fois', '#F59E0B', function (m) { return m.ret.length === 1; }], ['Jamais', '#CBD5E1', function (m) { return !m.ret.length; }]].map(function (d) { return { label: d[0], data: ss.map(function (k) { return M.filter(function (m) { return m.soc === k && d[2](m); }).length; }), backgroundColor: d[1], stack: 's', maxBarThickness: 18 }; }) },
+      options: { indexAxis: 'y', interaction: { mode: 'index', intersect: false }, scales: { x: G.ay({ stacked: true }), y: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: '#334155' } } }, plugins: { tooltip: { filter: function (i) { return i.parsed.x > 0; } } } } });
+    var mxr = Math.max.apply(null, M.map(function (m) { return m.ret.length; }).concat([1]));
+    G.table('rt-table', [
+      { k: 'serie', l: 'N° de série', fmt: function (m) { return '<b>' + esc(m.serie) + '</b>'; } },
+      { k: 'modele', l: 'Machine', fmt: function (m) { return '<div class="tc-cl">' + thumb(m, 'sm') + '<span><b>' + esc(m.modele) + '</b><small>' + esc(m.mat) + '</small><span class="soc">' + esc(m.soc) + '</span></span></div>'; } },
+      { k: 'client', l: 'Client', fmt: function (m) { return esc(m.client); } },
+      { k: 'vente', l: 'Vendue le', sort: function (m) { return m.vente; }, fmt: function (m) { return dlong(m.vente); } },
+      { k: 'nret', l: 'Retours', num: true, sort: function (m) { return m.ret.length; }, fmt: function (m) { return G.cellBar(m.ret.length, mxr, m.ret.length >= 2 ? '#EF4444' : m.ret.length ? '#F59E0B' : '#CBD5E1', '<b>' + n0(m.ret.length) + '</b>'); } },
+      { k: 'first', l: '1er retour', num: true, sort: function (m) { return m.ret.length ? first(m) : 1e9; }, fmt: function (m) { return m.ret.length ? n0(first(m)) + ' j' : '<small class="mt">pas revenue</small>'; } }
+    ], M, { sortKey: 'nret', dir: -1, ph: 'Rechercher un n° de série, un modèle, un client', text: function (m) { return [m.serie, m.modele, m.client, m.soc, m.mat].join(' '); }, rowAttr: function (m) { return 'data-s="' + esc(m.serie) + '" class="clk"'; },
+      bind: function (box) { box.querySelectorAll('tr.clk').forEach(function (tr) { tr.addEventListener('click', function () { openFiche(tr.getAttribute('data-s')); }); }); } });
   }
   function fiche(m, inline) {
     var ev = [{ d: m.vente, t: 'Vendue à ' + m.client, s: 'vente, ' + m.soc, k: 'v' }].concat(m.ret.map(function (r, i) {
@@ -379,6 +506,7 @@
       ['Compresseur n° ' + c31.serie + ' (' + c31.client + ') revenu ' + c31.ret.length + ' fois, 2 fois pour surchauffe : diagnostic complet avant toute nouvelle réparation.', 'Responsable atelier PST-CI']
     ];
     var cmax = causes[0][1];
+    var ech = all.filter(function (r) { return r.rep || hours(r.recue, REF) > 48; }), s48 = ech.filter(function (r) { return r.rep && hours(r.recue, r.rep) <= 48; }).length, p48 = ech.length ? Math.round(s48 / ech.length * 100) : 0;
     $('rap').innerHTML =
       '<header class="rp-h"><img src="assets/logo-sacri.png" alt="SACRI"><div><p class="rp-k">Service client et après-vente, groupe SACRI</p><h2>Rapport des réclamations de la semaine</h2><p class="rp-s">Pour la réunion du lundi matin. Réclamations reçues du 6 au 19 novembre 2026, situation au ' + jour(REF) + ' 2026 à ' + hh(REF) + '.</p></div></header>' +
       '<p class="rp-demo">Données de démonstration : clients, machines et numéros fictifs.</p>' +
@@ -388,6 +516,9 @@
         '<div class="r"><b>' + n0(red.length) + '</b><span>sans réponse depuis plus de 48 h</span></div>' +
         '<div><b>' + hfmt(moy) + '</b><span>délai moyen de première réponse (médiane ' + hfmt(med) + ', sur ' + n0(repd.length) + ' répondues)</span></div>' +
       '</div>' +
+      '<div class="rp-gr"><div class="rp-ch w2"><h3>Réclamations reçues par semaine et par société</h3><div class="rp-cv" style="height:190px"><canvas id="rp-ch-sem"></canvas></div></div>' +
+        '<div class="rp-ch"><h3>Causes</h3><div class="rp-cv dn" style="height:190px"><canvas id="rp-ch-cause"></canvas><div class="gc-c"><b>' + n0(all.length) + '</b><span>reçues</span></div></div></div>' +
+        '<div class="rp-ch"><h3>Réponse en moins de 48 h</h3><div class="rp-cv dn" style="height:120px"><canvas id="rp-ch-g"></canvas><div class="gc-c g"><b>' + n0(p48) + '\u00a0%</b><span>' + n0(s48) + ' sur ' + n0(ech.length) + '</span></div></div><p class="rp-gn">' + pl(red.length, 'réclamation', 'réclamations') + ' au-delà de 48 h</p></div></div>' +
       '<div class="rp-g">' +
         '<section><h3>Par société</h3><table class="rp-t"><thead><tr><th>Société</th><th>Reçues</th><th>Ouvertes</th><th>+ de 48 h</th><th>Délai moyen de réponse</th></tr></thead><tbody>' +
           socs.map(function (x) { return '<tr><td>' + esc(x.k) + '</td><td>' + n0(x.n) + '</td><td>' + n0(x.o) + '</td><td class="' + (x.r ? 'r' : '') + '">' + n0(x.r) + '</td><td>' + (x.m == null ? '<span class="r">aucune réponse</span>' : hfmt(x.m) + (x.sr ? ' <small>(' + n0(x.sr) + ' sans réponse)</small>' : '')) + '</td></tr>'; }).join('') +
@@ -402,6 +533,17 @@
       '</tbody></table></section>' +
       '<section><h3>Décisions à prendre</h3><ol class="rp-dec">' + DEC.map(function (d) { return '<li><p>' + esc(d[0]) + '</p><p class="q">Qui tranche : ' + esc(d[1]) + '</p></li>'; }).join('') + '</ol></section>' +
       '<p class="rp-f">SACRI, service client et après-vente. Rapport préparé automatiquement chaque lundi à 7 h et envoyé à la direction. Données de démonstration.</p>';
+    var G = window.SG; if (!G) return;
+    var ss = SOCS.slice();
+    function img(id, ch) { if (!ch) return; var c = document.getElementById(id); var im = new Image(); im.src = ch.toBase64Image('image/png', 1); im.alt = ''; im.className = 'rp-img'; c.parentNode.replaceChild(im, c); ch.destroy(); }
+    var c1 = G.mk('rp-ch-sem', { type: 'bar', data: { labels: SEM.map(function (w) { return w[1]; }), datasets: ss.map(function (k) { return { label: k, data: SEM.map(function (w) { var a = dt(w[0]), b = new Date(a.getTime() + 7 * 864e5); return all.filter(function (r) { return r.soc === k && dt(r.recue) >= a && dt(r.recue) < b; }).length; }), backgroundColor: G.SOCC[k], stack: 's', maxBarThickness: 54 }; }) },
+      options: { devicePixelRatio: 3, plugins: { legend: { display: true, position: 'right', labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'rectRounded', font: { size: 11 }, color: '#334155' } } }, scales: { x: G.ax({ stacked: true }), y: G.ay({ stacked: true }) } } });
+    img('rp-ch-sem', c1);
+    var cks = causes.map(function (c) { return c[0]; });
+    img('rp-ch-cause', G.mk('rp-ch-cause', { type: 'doughnut', data: { labels: cks, datasets: [{ data: causes.map(function (c) { return c[1]; }), backgroundColor: cks.map(function (k) { return CAUSEC[k] || '#64748B'; }), borderWidth: 2, borderColor: '#fff' }] }, options: { devicePixelRatio: 3, cutout: '68%' } }));
+    img('rp-ch-g', G.mk('rp-ch-g', { type: 'doughnut', data: { labels: ['', ''], datasets: [{ data: [s48, Math.max(0, ech.length - s48)], backgroundColor: [p48 >= 90 ? '#10B981' : p48 >= 70 ? '#F59E0B' : '#EF4444', '#EEF2F6'], borderWidth: 0, borderRadius: [8, 0] }] }, options: { devicePixelRatio: 3, rotation: -90, circumference: 180, cutout: '76%', plugins: { tooltip: { enabled: false } } } }));
+    // pastilles de couleur devant les causes
+    $('rap').querySelectorAll('.rp-c p').forEach(function (p, i) { var k = causes[i] && causes[i][0]; if (k) p.querySelector('em').style.background = CAUSEC[k] || '#64748B'; });
   }
 
   var bound = false;

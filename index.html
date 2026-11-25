@@ -4,19 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#F7F7F5">
+<meta name="theme-color" content="#F8FAFC">
 <title>SACRI, service client et après-vente</title>
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=20261125a">
-<link rel="stylesheet" href="assets/envoi.css?v=20261125a">
-<link rel="stylesheet" href="assets/suivi.css?v=20261125a">
+<link rel="preload" href="assets/PlusJakartaSans.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="assets/style.css?v=20261125c">
+<link rel="stylesheet" href="assets/envoi.css?v=20261125c">
+<link rel="stylesheet" href="assets/suivi.css?v=20261125c">
+<link rel="stylesheet" href="assets/sacri2027.css?v=20261125c">
 </head>
 <body>
 <div class="app">
 
 <aside class="side" aria-label="Navigation">
-  <div class="brand"><img src="assets/logo-sacri.png" alt="SACRI"><div><p class="bn">Service client</p><p class="bs">et après-vente</p></div></div>
+  <div class="brand"><img src="assets/logo-sacri.png" alt="SACRI"><div class="bt"><p class="bn">Service client</p><p class="bs">et après-vente</p></div></div>
   <nav class="nav-s">
     <p class="nl">Suivi</p>
     <a class="ni" href="#messages" data-v="messages"><i data-i="inbox"></i>Boîte de réception<span class="k" id="k-msg"></span></a>
@@ -49,12 +51,15 @@
       </div>
     </div>
   </header>
+  <div class="fbar" id="fbar"><div class="f-in"></div></div>
 
   <main class="content">
 
   <section class="view" id="v-messages">
     <div class="vh"><h1>Boîte de réception</h1><p class="lede" id="m-lede"></p></div>
     <div class="kstrip" id="m-kpis"></div>
+    <div class="gg g-msg" id="m-graphs"></div>
+    <div class="sh"><h2>Conversations</h2><p class="hint">Cliquez un message pour voir le fil et son suivi.</p></div>
     <div class="ibx card" id="ibx">
       <div class="ib-list">
         <div class="ib-tools">
@@ -72,6 +77,7 @@
   <section class="view" id="v-atelier">
     <div class="vh"><h1>Atelier</h1><p class="lede" id="a-lede"></p></div>
     <div class="kstrip" id="a-kpis"></div>
+    <div class="gg g-at" id="a-graphs"></div>
     <div class="sh"><h2>Machines en cours</h2><p class="hint">Cliquez une machine pour voir son suivi et le message envoyé au client.</p></div>
     <div class="kb" id="kb"></div>
     <div class="sh"><h2>Rendues aux clients <span class="cnt" id="r-cnt"></span></h2></div>
@@ -81,6 +87,7 @@
   <section class="view" id="v-reclamations">
     <div class="vh vh-a"><div><h1>Réclamations</h1><p class="lede" id="rc-lede"></p></div><a class="bt pri" href="#rapport"><i data-i="file-text"></i>Rapport de la semaine</a></div>
     <div class="kstrip" id="rc-kpis"></div>
+    <div class="gg g-rc" id="rc-graphs"></div>
     <div class="sh"><h2>Escalade automatique</h2><p class="hint">Réglages actifs : chaque alerte part sur WhatsApp et par e-mail, sans qu'on y pense.</p></div>
     <div class="esc" id="rc-esc"></div>
     <div class="sh"><h2>Une réclamation suivie de bout en bout</h2><p class="hint">Exemple réel de démonstration, du message du client à la clôture.</p></div>
@@ -89,7 +96,7 @@
     <div class="socs" id="rc-socs"></div>
     <div class="sh"><h2>Suivi des réclamations</h2><button class="bt pri" id="rc-alert-all"></button></div>
     <div class="card rcl">
-      <div class="rc-tools"><div class="seg" id="rc-seg"></div><p class="hint">Rouge : sans réponse depuis plus de 48 h.</p></div>
+      <div class="rc-tools"><div class="seg" id="rc-seg"></div><p class="hint">Rouge : sans réponse depuis plus de 48 h. Cliquez un en-tête pour trier.</p></div>
       <div id="rc-rows"></div>
     </div>
   </section>
@@ -109,6 +116,7 @@
     </div>
     <div id="rt-none" hidden></div>
     <div id="rt-body">
+      <div class="gg g-rt" id="rt-graphs"></div>
       <div class="sh"><h2>Machines revenues 2 fois ou plus <span class="cnt" id="rt-rec-n"></span></h2><p class="hint">Cliquez une machine pour voir son historique.</p></div>
       <div class="mrs" id="rt-rec"></div>
       <div class="sh"><h2>Délai médian entre la vente et le premier retour</h2><p class="hint">Sur les machines revenues au moins une fois.</p></div>
@@ -118,6 +126,8 @@
       </div>
       <div class="sh"><h2>Modèles qui reviennent le plus</h2><p class="hint">Nombre de passages à l'atelier depuis la vente.</p></div>
       <div class="card tops" id="rt-top"></div>
+      <div class="sh"><h2>Toutes les machines suivies</h2><p class="hint">Triez par retours, délai ou client ; cliquez une ligne pour la fiche.</p></div>
+      <div class="card tbx" id="rt-table"></div>
     </div>
   </section>
 
@@ -154,10 +164,12 @@
   <div class="dr-b" id="dr-b"></div>
 </aside>
 
-<script src="assets/icons.js?v=20261125a"></script>
-<script src="assets/donnees.js?v=20261125a"></script>
-<script src="assets/envoi.js?v=20261125a"></script>
-<script src="assets/suivi.js?v=20261125a"></script>
-<script src="assets/app.js?v=20261125a"></script>
+<script src="assets/chart.umd.min.js?v=20261125c"></script>
+<script src="assets/icons.js?v=20261125c"></script>
+<script src="assets/graphes.js?v=20261125c"></script>
+<script src="assets/donnees.js?v=20261125c"></script>
+<script src="assets/envoi.js?v=20261125c"></script>
+<script src="assets/suivi.js?v=20261125c"></script>
+<script src="assets/app.js?v=20261125c"></script>
 </body>
 </html>
