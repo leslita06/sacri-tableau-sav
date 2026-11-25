@@ -200,7 +200,7 @@ window.SACRI_DATA={
    "n": "D-014",
    "recue": "2026-11-18T16:00",
    "canal": "E-mail",
-   "client": "Carrières Exemple",
+   "client": "Carrières du N’Zi",
    "soc": "PST-CI",
    "objet": "Réclamation",
    "demande": "Le compresseur réparé chauffe encore, nous sommes mécontents.",
@@ -528,7 +528,7 @@ window.SACRI_DATA={
   {
    "br": "BR-2026-0421",
    "recue": "2026-11-09T00:00",
-   "client": "Carrières Exemple",
+   "client": "Carrières du N’Zi",
    "type": "BTP",
    "soc": "PST-CI",
    "mat": "Compresseur",

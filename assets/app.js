@@ -367,5 +367,5 @@
     setVue(q.get('vue') || location.hash.slice(1) || 'messages');
   };
   if (window.SACRI_DATA) boot(window.SACRI_DATA);
-  else fetch('data/donnees.json?v=20261124g').then(function (r) { return r.json(); }).then(boot);
+  else fetch('data/donnees.json?v=20261125a').then(function (r) { return r.json(); }).then(boot);
 })();
